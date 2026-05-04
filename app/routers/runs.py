@@ -1,27 +1,39 @@
-from fastapi import APIRouter, HTTPException
-from boto3.dynamodb.conditions import Key
-from app.models import Run, RunCreate
-from app.database import get_table
 import uuid
 from datetime import datetime, timezone
+
+from boto3.dynamodb.conditions import Key
+from fastapi import APIRouter, Depends, HTTPException
+
+from app.database import get_table
+from app.dependencies import require_api_key
+from app.models import Run, RunCreate
 
 router = APIRouter()
 
 
 @router.post("/", response_model=Run, status_code=201)
-def create_run(run: RunCreate):
+def create_run(run: RunCreate, _: str = Depends(require_api_key)):
     table = get_table()
+    data = run.model_dump()
+    if not data.get("title"):
+        parts = [data["benchmark"]]
+        if data.get("apk_version"):
+            parts.append(f"v{data['apk_version']}")
+        if data.get("device"):
+            parts.append(data["device"])
+        parts.append(datetime.now(timezone.utc).strftime("%Y-%m-%d"))
+        data["title"] = " · ".join(parts)
     item = {
         "run_id": str(uuid.uuid4()),
         "timestamp": datetime.now(timezone.utc).isoformat(),
-        **run.model_dump(),
+        **data,
     }
     table.put_item(Item=item)
     return item
 
 
 @router.get("/", response_model=list[Run])
-def list_runs(benchmark: str | None = None, limit: int = 50):
+def list_runs(benchmark: str | None = None, limit: int = 50, _: str = Depends(require_api_key)):
     table = get_table()
     if benchmark:
         resp = table.query(
@@ -36,7 +48,7 @@ def list_runs(benchmark: str | None = None, limit: int = 50):
 
 
 @router.get("/{run_id}", response_model=Run)
-def get_run(run_id: str):
+def get_run(run_id: str, _: str = Depends(require_api_key)):
     table = get_table()
     resp = table.get_item(Key={"run_id": run_id})
     item = resp.get("Item")

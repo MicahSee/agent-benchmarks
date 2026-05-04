@@ -21,9 +21,9 @@
       <thead>
         <tr class="bg-gray-50">
           <th class="px-5 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wide">Time</th>
-          <th class="px-5 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wide">Benchmark</th>
+          <th class="px-5 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wide">Run</th>
           <th class="px-5 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wide">Device</th>
-          <th class="px-5 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wide">APK</th>
+          <th class="px-5 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wide">Version</th>
           <th class="px-5 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wide">Score</th>
           <th class="px-5 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wide">Time</th>
           <th class="px-5 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wide">Status</th>
@@ -35,7 +35,7 @@
         {% set r = run.results %}
         <tr class="hover:bg-gray-50">
           <td class="px-5 py-3 text-sm text-gray-500 whitespace-nowrap">{{ run.timestamp[:19] | replace('T', ' ') }}</td>
-          <td class="px-5 py-3 text-sm font-medium text-gray-800">{{ run.benchmark }}</td>
+          <td class="px-5 py-3 text-sm font-medium text-gray-800">{{ run.title or run.benchmark }}</td>
           <td class="px-5 py-3 text-sm text-gray-500 max-w-[160px] truncate" title="{{ run.device or '' }}">{{ run.device or '—' }}</td>
           <td class="px-5 py-3 text-sm text-gray-500 font-mono text-xs">{{ run.apk_version or '—' }}</td>
           <td class="px-5 py-3 text-sm">

@@ -6,7 +6,7 @@
   <div class="flex items-center gap-3 mb-6">
     <a href="/dashboard" class="text-sm text-gray-400 hover:text-gray-600">← Runs</a>
     <span class="text-gray-200">/</span>
-    <h2 class="text-xl font-semibold text-gray-800">{{ run.benchmark }}</h2>
+    <h2 class="text-xl font-semibold text-gray-800">{{ run.title or run.benchmark }}</h2>
     {% if r.get('all_success') %}
       <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">All passed</span>
     {% elif r.get('completed') == false %}
