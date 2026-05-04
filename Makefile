@@ -12,13 +12,12 @@ ROLE_ARN    := arn:aws:iam::$(ACCOUNT_ID):role/agent-benchmarks-task-role
 setup:
 	bash scripts/setup-aws.sh
 
+push:
+	aws ecr get-login-password --region $(REGION) | docker login --username AWS --password-stdin $(ACCOUNT_ID).dkr.ecr.$(REGION).amazonaws.com
+	docker buildx build --platform linux/amd64 -t $(IMAGE):latest --push .
+
 build:
 	docker build -t $(ECR_REPO):latest .
-
-push: build
-	aws ecr get-login-password --region $(REGION) | docker login --username AWS --password-stdin $(ACCOUNT_ID).dkr.ecr.$(REGION).amazonaws.com
-	docker tag $(ECR_REPO):latest $(IMAGE):latest
-	docker push $(IMAGE):latest
 
 deploy: push
 	# Register task definition
