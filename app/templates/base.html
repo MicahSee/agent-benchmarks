@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Agent Benchmarks{% endblock %}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+<div class="flex min-h-screen">
+  {% if user %}
+  <aside class="w-56 bg-gray-900 text-white flex flex-col flex-shrink-0">
+    <div class="p-5 border-b border-gray-700">
+      <h1 class="font-bold text-sm tracking-wide uppercase text-gray-300">Agent Benchmarks</h1>
+      <p class="text-xs text-gray-500 mt-1 truncate">{{ user }}</p>
+    </div>
+    <nav class="flex-1 p-3 space-y-1">
+      <a href="/dashboard" class="flex items-center gap-2 px-3 py-2 rounded text-sm {% if active == 'dashboard' %}bg-gray-700 text-white{% else %}text-gray-400 hover:bg-gray-800 hover:text-white{% endif %}">
+        Dashboard
+      </a>
+      <a href="/settings" class="flex items-center gap-2 px-3 py-2 rounded text-sm {% if active == 'settings' %}bg-gray-700 text-white{% else %}text-gray-400 hover:bg-gray-800 hover:text-white{% endif %}">
+        Settings
+      </a>
+    </nav>
+    <div class="p-3 border-t border-gray-700">
+      <a href="/logout" class="block px-3 py-2 rounded text-xs text-gray-500 hover:text-gray-300">Sign out</a>
+    </div>
+  </aside>
+  {% endif %}
+  <div class="{{ 'flex-1 p-8 overflow-auto' if user else 'flex-1' }}">
+    {% block content %}{% endblock %}
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block title %}Run {{ run.run_id[:8] }} — Agent Benchmarks{% endblock %}
+{% block content %}
+{% set r = run.results %}
+<div class="max-w-3xl">
+  <div class="flex items-center gap-3 mb-6">
+    <a href="/dashboard" class="text-sm text-gray-400 hover:text-gray-600">← Runs</a>
+    <span class="text-gray-200">/</span>
+    <h2 class="text-xl font-semibold text-gray-800">{{ run.benchmark }}</h2>
+    {% if r.get('all_success') %}
+      <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">All passed</span>
+    {% elif r.get('completed') == false %}
+      <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">Timed out</span>
+    {% elif r.get('error') %}
+      <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">Error</span>
+    {% elif r.get('completed') %}
+      <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">Completed</span>
+    {% endif %}
+  </div>
+
+  <!-- Metadata -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-5">
+    <dl class="grid grid-cols-2 gap-x-8 gap-y-4 text-sm">
+      <div>
+        <dt class="text-gray-400 text-xs uppercase font-medium mb-0.5">Run ID</dt>
+        <dd class="font-mono text-gray-700 text-xs">{{ run.run_id }}</dd>
+      </div>
+      <div>
+        <dt class="text-gray-400 text-xs uppercase font-medium mb-0.5">Timestamp</dt>
+        <dd class="text-gray-700">{{ run.timestamp[:19] | replace('T', ' ') }} UTC</dd>
+      </div>
+      <div>
+        <dt class="text-gray-400 text-xs uppercase font-medium mb-0.5">Device</dt>
+        <dd class="text-gray-700">{{ run.device or '—' }}</dd>
+      </div>
+      <div>
+        <dt class="text-gray-400 text-xs uppercase font-medium mb-0.5">APK Version</dt>
+        <dd class="font-mono text-gray-700 text-xs">{{ run.apk_version or '—' }}</dd>
+      </div>
+      <div>
+        <dt class="text-gray-400 text-xs uppercase font-medium mb-0.5">Run Time</dt>
+        <dd class="text-gray-700">
+          {% if r.get('run_time_seconds') is not none %}
+            {{ "%.1f"|format(r.get('run_time_seconds')) }}s
+          {% else %}—{% endif %}
+        </dd>
+      </div>
+      <div>
+        <dt class="text-gray-400 text-xs uppercase font-medium mb-0.5">Score</dt>
+        <dd class="text-gray-700">
+          {% if r.get('passed') is not none %}
+            <span class="text-green-600 font-semibold">{{ r.get('passed') }}</span>
+            / {{ r.get('tasks_total', r.get('passed', 0) + r.get('failed', 0)) }} tasks passed
+          {% else %}—{% endif %}
+        </dd>
+      </div>
+    </dl>
+  </div>
+
+  <!-- Error -->
+  {% if r.get('error') %}
+  <div class="bg-red-50 border border-red-200 rounded-xl p-4 mb-5">
+    <p class="text-xs font-medium text-red-700 uppercase mb-1">Error</p>
+    <p class="text-sm text-red-800 font-mono">{{ r.get('error') }}</p>
+  </div>
+  {% endif %}
+
+  <!-- Per-task results -->
+  {% if r.get('tasks') %}
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div class="px-5 py-4 border-b border-gray-100">
+      <h3 class="text-sm font-medium text-gray-700">Task Results</h3>
+    </div>
+    <table class="min-w-full divide-y divide-gray-100">
+      <thead>
+        <tr class="bg-gray-50">
+          <th class="px-5 py-3 text-left text-xs font-medium text-gray-400 uppercase">Task</th>
+          <th class="px-5 py-3 text-left text-xs font-medium text-gray-400 uppercase">Result</th>
+          <th class="px-5 py-3 text-left text-xs font-medium text-gray-400 uppercase">Details</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-100">
+        {% for task_name, task in r.get('tasks', {}).items() %}
+        <tr>
+          <td class="px-5 py-3 text-sm font-medium text-gray-800">{{ task_name }}</td>
+          <td class="px-5 py-3 text-sm">
+            {% if task.get('success') %}
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">Pass</span>
+            {% else %}
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-700">Fail</span>
+            {% endif %}
+          </td>
+          <td class="px-5 py-3 text-sm text-gray-500">{{ task.get('details') or task.get('message') or '—' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
