@@ -1,5 +1,5 @@
-# Builds and pushes the Docker image to ECR on every push to staging.
-# Tags: :staging and :<sha>
+# Builds and pushes the Docker image to ECR on every push to staging,
+# then forces an ECS redeployment to pick up the new image.
 
 name: Staging Build
 
@@ -11,6 +11,8 @@ on:
 env:
   AWS_REGION: us-east-1
   ECR_REPO: agent-benchmarks
+  ECS_CLUSTER: agent-benchmarks
+  ECS_SERVICE: agent-benchmarks
 
 jobs:
   build:
@@ -41,8 +43,18 @@ jobs:
         with:
           context: .
           push: true
+          platforms: linux/amd64
           tags: |
+            ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPO }}:latest
             ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPO }}:staging
             ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPO }}:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Deploy to ECS
+        run: |
+          aws ecs update-service \
+            --cluster ${{ env.ECS_CLUSTER }} \
+            --service ${{ env.ECS_SERVICE }} \
+            --force-new-deployment \
+            --region ${{ env.AWS_REGION }}
