@@ -54,6 +54,16 @@
           {% else %}—{% endif %}
         </dd>
       </div>
+      {% if r.get('runner_version') %}
+      <div>
+        <dt class="text-gray-400 text-xs uppercase font-medium mb-0.5">droidrun Version</dt>
+        <dd class="font-mono text-gray-700 text-xs">{{ r.get('runner_version') }}</dd>
+      </div>
+      <div>
+        <dt class="text-gray-400 text-xs uppercase font-medium mb-0.5">droidrun Branch</dt>
+        <dd class="font-mono text-gray-700 text-xs">{{ r.get('runner_branch', '—') }}</dd>
+      </div>
+      {% endif %}
     </dl>
   </div>
 
