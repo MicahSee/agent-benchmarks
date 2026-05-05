@@ -3,10 +3,35 @@
 {% block content %}
 {% set r = run.results %}
 <div class="max-w-3xl">
-  <div class="flex items-center gap-3 mb-6">
+  <div class="flex items-center gap-3 mb-6 flex-wrap">
     <a href="/dashboard" class="text-sm text-gray-400 hover:text-gray-600">← Runs</a>
     <span class="text-gray-200">/</span>
-    <h2 class="text-xl font-semibold text-gray-800">{{ run.title or run.benchmark }}</h2>
+    <div id="title-display" class="flex items-center gap-2">
+      <h2 class="text-xl font-semibold text-gray-800">{{ run.title or run.benchmark }}</h2>
+      <button onclick="showRename()" class="text-xs text-gray-400 hover:text-gray-600 px-1.5 py-0.5 rounded border border-gray-200 hover:border-gray-300">Rename</button>
+    </div>
+    <form id="rename-form" action="/dashboard/{{ run.run_id }}/rename" method="post" class="hidden items-center gap-2">
+      <input id="rename-input" name="title" type="text" value="{{ run.title or run.benchmark }}"
+        class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-80">
+      <button type="submit" class="text-sm bg-blue-600 text-white px-3 py-1.5 rounded-lg hover:bg-blue-700">Save</button>
+      <button type="button" onclick="hideRename()" class="text-sm text-gray-500 hover:text-gray-700">Cancel</button>
+    </form>
+    <script>
+      function showRename() {
+        document.getElementById('title-display').classList.add('hidden');
+        const form = document.getElementById('rename-form');
+        form.classList.remove('hidden');
+        form.classList.add('flex');
+        document.getElementById('rename-input').focus();
+        document.getElementById('rename-input').select();
+      }
+      function hideRename() {
+        document.getElementById('title-display').classList.remove('hidden');
+        const form = document.getElementById('rename-form');
+        form.classList.add('hidden');
+        form.classList.remove('flex');
+      }
+    </script>
     {% if r.get('all_success') %}
       <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">All passed</span>
     {% elif r.get('completed') == false %}

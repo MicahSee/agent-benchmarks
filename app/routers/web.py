@@ -93,6 +93,19 @@ def run_detail(request: Request, run_id: str):
     })
 
 
+@router.post("/dashboard/{run_id}/rename")
+async def rename_run(request: Request, run_id: str, title: str = Form(...)):
+    user = get_session_user(request)
+    if not user:
+        return RedirectResponse("/login")
+    get_table().update_item(
+        Key={"run_id": run_id},
+        UpdateExpression="SET title = :t",
+        ExpressionAttributeValues={":t": title},
+    )
+    return RedirectResponse(f"/dashboard/{run_id}", status_code=303)
+
+
 @router.get("/settings", response_class=HTMLResponse)
 def settings(request: Request, new_key: str | None = None, new_password: str | None = None):
     user = get_session_user(request)
