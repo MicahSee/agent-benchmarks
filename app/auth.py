@@ -22,3 +22,14 @@ def decode_session_token(token: str) -> str | None:
         return s.loads(token, max_age=86400 * 7)
     except (BadSignature, SignatureExpired):
         return None
+
+
+def get_user(email: str) -> dict | None:
+    from app.database import get_users_table
+    resp = get_users_table().get_item(Key={"email": email})
+    return resp.get("Item")
+
+
+def is_admin(email: str) -> bool:
+    user = get_user(email)
+    return user is not None and user.get("role") == "admin"

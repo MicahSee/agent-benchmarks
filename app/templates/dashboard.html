@@ -6,15 +6,17 @@
     <h2 class="text-xl font-semibold text-gray-800">Runs</h2>
   </div>
 
-  <form method="get" class="flex gap-2 mb-6">
-    <input type="text" name="benchmark" value="{{ benchmark or '' }}" placeholder="Filter by benchmark"
-      class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-56">
-    <button type="submit"
-      class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700">Filter</button>
-    {% if benchmark %}
-    <a href="/dashboard" class="px-4 py-2 text-sm text-gray-500 hover:text-gray-700 self-center">Clear</a>
-    {% endif %}
-  </form>
+  <!-- Tabs -->
+  <div class="flex gap-1 mb-6 border-b border-gray-200">
+    <a href="/dashboard?tab=all"
+      class="px-4 py-2 text-sm font-medium rounded-t {% if tab == 'all' %}text-blue-600 border-b-2 border-blue-600{% else %}text-gray-500 hover:text-gray-700{% endif %}">
+      All Runs
+    </a>
+    <a href="/dashboard?tab=mine"
+      class="px-4 py-2 text-sm font-medium rounded-t {% if tab == 'mine' %}text-blue-600 border-b-2 border-blue-600{% else %}text-gray-500 hover:text-gray-700{% endif %}">
+      My Runs
+    </a>
+  </div>
 
   <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
     <table class="min-w-full divide-y divide-gray-100">
@@ -27,6 +29,7 @@
           <th class="px-5 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wide">Score</th>
           <th class="px-5 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wide">Time</th>
           <th class="px-5 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wide">Status</th>
+          <th class="px-5 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wide">By</th>
           <th class="px-5 py-3"></th>
         </tr>
       </thead>
@@ -36,21 +39,17 @@
         <tr class="hover:bg-gray-50">
           <td class="px-5 py-3 text-sm text-gray-500 whitespace-nowrap">{{ run.timestamp[:19] | replace('T', ' ') }}</td>
           <td class="px-5 py-3 text-sm font-medium text-gray-800">{{ run.title or run.benchmark }}</td>
-          <td class="px-5 py-3 text-sm text-gray-500 max-w-[160px] truncate" title="{{ run.device or '' }}">{{ run.device or '—' }}</td>
+          <td class="px-5 py-3 text-sm text-gray-500 max-w-[140px] truncate" title="{{ run.device or '' }}">{{ run.device or '—' }}</td>
           <td class="px-5 py-3 text-sm text-gray-500 font-mono text-xs">{{ run.apk_version or '—' }}</td>
           <td class="px-5 py-3 text-sm">
             {% if r.get('passed') is not none %}
               <span class="text-green-600 font-medium">{{ r.get('passed') }}</span>
               <span class="text-gray-300">/</span>
               <span class="text-gray-500">{{ r.get('tasks_total', (r.get('passed', 0) + r.get('failed', 0))) }}</span>
-            {% else %}
-              <span class="text-gray-300">—</span>
-            {% endif %}
+            {% else %}<span class="text-gray-300">—</span>{% endif %}
           </td>
           <td class="px-5 py-3 text-sm text-gray-500 whitespace-nowrap">
-            {% if r.get('run_time_seconds') is not none %}
-              {{ "%.0f"|format(r.get('run_time_seconds')) }}s
-            {% else %}—{% endif %}
+            {% if r.get('run_time_seconds') is not none %}{{ "%.0f"|format(r.get('run_time_seconds')) }}s{% else %}—{% endif %}
           </td>
           <td class="px-5 py-3 text-sm">
             {% if r.get('all_success') %}
@@ -61,9 +60,10 @@
               <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">Error</span>
             {% elif r.get('completed') %}
               <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">Completed</span>
-            {% else %}
-              <span class="text-gray-300">—</span>
-            {% endif %}
+            {% else %}<span class="text-gray-300">—</span>{% endif %}
+          </td>
+          <td class="px-5 py-3 text-xs text-gray-400 max-w-[120px] truncate" title="{{ run.user_id or '' }}">
+            {{ run.user_id.split('@')[0] if run.user_id else '—' }}
           </td>
           <td class="px-5 py-3 text-right text-sm">
             <a href="/dashboard/{{ run.run_id }}" class="text-blue-600 hover:underline">View</a>
@@ -71,7 +71,7 @@
         </tr>
         {% else %}
         <tr>
-          <td colspan="8" class="px-5 py-10 text-center text-sm text-gray-400">No runs yet.</td>
+          <td colspan="9" class="px-5 py-10 text-center text-sm text-gray-400">No runs yet.</td>
         </tr>
         {% endfor %}
       </tbody>

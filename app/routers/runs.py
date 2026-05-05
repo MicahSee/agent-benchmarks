@@ -1,5 +1,6 @@
 import uuid
 from datetime import datetime, timezone
+from decimal import Decimal
 
 from boto3.dynamodb.conditions import Key
 from fastapi import APIRouter, Depends, HTTPException
@@ -11,8 +12,19 @@ from app.models import Run, RunCreate
 router = APIRouter()
 
 
+def _to_decimal(obj):
+    """Recursively convert floats to Decimal for DynamoDB storage."""
+    if isinstance(obj, float):
+        return Decimal(str(obj))
+    if isinstance(obj, dict):
+        return {k: _to_decimal(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [_to_decimal(i) for i in obj]
+    return obj
+
+
 @router.post("/", response_model=Run, status_code=201)
-def create_run(run: RunCreate, _: str = Depends(require_api_key)):
+def create_run(run: RunCreate, user_id: str = Depends(require_api_key)):
     table = get_table()
     data = run.model_dump()
     if not data.get("title"):
@@ -26,9 +38,10 @@ def create_run(run: RunCreate, _: str = Depends(require_api_key)):
     item = {
         "run_id": str(uuid.uuid4()),
         "timestamp": datetime.now(timezone.utc).isoformat(),
+        "user_id": user_id,
         **data,
     }
-    table.put_item(Item=item)
+    table.put_item(Item=_to_decimal(item))
     return item
 
 

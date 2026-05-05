@@ -3,20 +3,22 @@ import os
 import secrets
 import uuid
 from datetime import datetime, timezone
+from decimal import Decimal
 
 from boto3.dynamodb.conditions import Key
 from fastapi import APIRouter, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
-from app.auth import create_session_token, verify_password
-from app.database import get_api_keys_table, get_table
+from app.auth import create_session_token, verify_password, get_user, is_admin, hash_password
+from app.database import get_api_keys_table, get_table, get_users_table
 from app.dependencies import get_session_user
-from decimal import Decimal
+
+router = APIRouter()
+templates = Jinja2Templates(directory="app/templates")
 
 
 def _clean(obj):
-    """Recursively convert Decimal to int/float for template rendering."""
     if isinstance(obj, dict):
         return {k: _clean(v) for k, v in obj.items()}
     if isinstance(obj, list):
@@ -24,9 +26,6 @@ def _clean(obj):
     if isinstance(obj, Decimal):
         return int(obj) if obj == obj.to_integral_value() else float(obj)
     return obj
-
-router = APIRouter()
-templates = Jinja2Templates(directory="app/templates")
 
 
 @router.get("/", response_class=HTMLResponse)
@@ -43,9 +42,8 @@ def login_page(request: Request):
 
 @router.post("/login")
 async def login(request: Request, email: str = Form(...), password: str = Form(...)):
-    admin_email = os.environ.get("ADMIN_EMAIL", "")
-    admin_hash = os.environ.get("ADMIN_PASSWORD_HASH", "")
-    if email != admin_email or not verify_password(password, admin_hash):
+    user = get_user(email)
+    if not user or not verify_password(password, user["password_hash"]):
         return templates.TemplateResponse(request, "login.html", {"error": "Invalid email or password"}, status_code=401)
     token = create_session_token(email)
     resp = RedirectResponse("/dashboard", status_code=303)
@@ -61,15 +59,15 @@ def logout():
 
 
 @router.get("/dashboard", response_class=HTMLResponse)
-def dashboard(request: Request, benchmark: str | None = None):
+def dashboard(request: Request, tab: str = "all"):
     user = get_session_user(request)
     if not user:
         return RedirectResponse("/login")
     table = get_table()
-    if benchmark:
+    if tab == "mine":
         result = table.query(
-            IndexName="benchmark-timestamp-index",
-            KeyConditionExpression=Key("benchmark").eq(benchmark),
+            IndexName="user_id-timestamp-index",
+            KeyConditionExpression=Key("user_id").eq(user),
             ScanIndexForward=False,
             Limit=50,
         )
@@ -77,7 +75,7 @@ def dashboard(request: Request, benchmark: str | None = None):
         result = table.scan(Limit=50)
     runs = [_clean(item) for item in sorted(result["Items"], key=lambda r: r["timestamp"], reverse=True)]
     return templates.TemplateResponse(request, "dashboard.html", {
-        "user": user, "runs": runs, "benchmark": benchmark, "active": "dashboard",
+        "user": user, "runs": runs, "tab": tab, "active": "dashboard",
     })
 
 
@@ -96,17 +94,23 @@ def run_detail(request: Request, run_id: str):
 
 
 @router.get("/settings", response_class=HTMLResponse)
-def settings(request: Request, new_key: str | None = None):
+def settings(request: Request, new_key: str | None = None, new_password: str | None = None):
     user = get_session_user(request)
     if not user:
         return RedirectResponse("/login")
-    result = get_api_keys_table().query(
+    keys = get_api_keys_table().query(
         IndexName="user-index",
         KeyConditionExpression=Key("user_id").eq(user),
-    )
-    keys = sorted(result["Items"], key=lambda k: k["created_at"], reverse=True)
+    )["Items"]
+    users = get_users_table().scan()["Items"] if is_admin(user) else []
     return templates.TemplateResponse(request, "settings.html", {
-        "user": user, "api_keys": keys, "new_key": new_key, "active": "settings",
+        "user": user,
+        "api_keys": sorted(keys, key=lambda k: k["created_at"], reverse=True),
+        "new_key": new_key,
+        "users": sorted(users, key=lambda u: u["created_at"]),
+        "new_password": new_password,
+        "is_admin": is_admin(user),
+        "active": "settings",
     })
 
 
@@ -134,12 +138,33 @@ async def revoke_api_key(request: Request, key_id: str):
     if not user:
         return RedirectResponse("/login")
     table = get_api_keys_table()
-    result = table.query(
-        IndexName="user-index",
-        KeyConditionExpression=Key("user_id").eq(user),
-    )
-    for item in result["Items"]:
+    for item in table.query(IndexName="user-index", KeyConditionExpression=Key("user_id").eq(user))["Items"]:
         if item["key_id"] == key_id:
             table.delete_item(Key={"key_hash": item["key_hash"]})
             break
+    return RedirectResponse("/settings", status_code=303)
+
+
+@router.post("/settings/users")
+async def create_user(request: Request, email: str = Form(...), name: str = Form(...)):
+    user = get_session_user(request)
+    if not user or not is_admin(user):
+        return RedirectResponse("/login")
+    password = secrets.token_urlsafe(12)
+    get_users_table().put_item(Item={
+        "email": email,
+        "name": name,
+        "password_hash": hash_password(password),
+        "role": "user",
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    })
+    return RedirectResponse(f"/settings?new_password={password}&new_user={email}", status_code=303)
+
+
+@router.post("/settings/users/{email}/delete")
+async def delete_user(request: Request, email: str):
+    user = get_session_user(request)
+    if not user or not is_admin(user) or email == user:
+        return RedirectResponse("/settings")
+    get_users_table().delete_item(Key={"email": email})
     return RedirectResponse("/settings", status_code=303)
