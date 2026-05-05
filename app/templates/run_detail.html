@@ -54,6 +54,18 @@
           {% else %}—{% endif %}
         </dd>
       </div>
+      {% if r.get('steps_taken') is not none %}
+      <div>
+        <dt class="text-gray-400 text-xs uppercase font-medium mb-0.5">Steps Taken</dt>
+        <dd class="text-gray-700">{{ r.get('steps_taken') }}</dd>
+      </div>
+      {% endif %}
+      {% if r.get('total_tokens') is not none %}
+      <div>
+        <dt class="text-gray-400 text-xs uppercase font-medium mb-0.5">Total Tokens</dt>
+        <dd class="text-gray-700">{{ "{:,}".format(r.get('total_tokens')) }}</dd>
+      </div>
+      {% endif %}
       {% if r.get('runner_version') %}
       <div>
         <dt class="text-gray-400 text-xs uppercase font-medium mb-0.5">droidrun Version</dt>
@@ -67,11 +79,51 @@
     </dl>
   </div>
 
+  <!-- Effort per task -->
+  {% if r.get('effort_per_task') %}
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-5">
+    <h3 class="text-sm font-medium text-gray-700 mb-4">Time per Challenge</h3>
+    <div class="space-y-3">
+      {% set effort = r.get('effort_per_task') %}
+      {% set max_time = effort.values() | max %}
+      {% for task_name, seconds in effort.items() %}
+      <div>
+        <div class="flex justify-between text-sm mb-1">
+          <span class="text-gray-700 capitalize">{{ task_name }}</span>
+          <span class="text-gray-500">{{ "%.0f"|format(seconds) }}s</span>
+        </div>
+        <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
+          <div class="h-2 bg-blue-500 rounded-full" style="width: {{ (seconds / max_time * 100)|int }}%"></div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
   <!-- Error -->
   {% if r.get('error') %}
   <div class="bg-red-50 border border-red-200 rounded-xl p-4 mb-5">
     <p class="text-xs font-medium text-red-700 uppercase mb-1">Error</p>
     <p class="text-sm text-red-800 font-mono">{{ r.get('error') }}</p>
+  </div>
+  {% endif %}
+
+  <!-- CoT log -->
+  {% if r.get('cot_log') %}
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-5">
+    <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+      <h3 class="text-sm font-medium text-gray-700">Chain of Thought</h3>
+      <span class="text-xs text-gray-400">{{ r.get('cot_log') | length }} steps</span>
+    </div>
+    <div class="divide-y divide-gray-100 max-h-96 overflow-y-auto">
+      {% for thought in r.get('cot_log') %}
+      <div class="px-5 py-3">
+        <div class="text-xs font-medium text-gray-400 mb-1">Step {{ loop.index }}</div>
+        <p class="text-sm text-gray-700 whitespace-pre-wrap">{{ thought }}</p>
+      </div>
+      {% endfor %}
+    </div>
   </div>
   {% endif %}
 
