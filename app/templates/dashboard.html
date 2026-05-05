@@ -62,8 +62,8 @@
               <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">Completed</span>
             {% else %}<span class="text-gray-300">—</span>{% endif %}
           </td>
-          <td class="px-5 py-3 text-xs text-gray-400 max-w-[120px] truncate" title="{{ run.user_id or '' }}">
-            {{ run.user_id.split('@')[0] if run.user_id else '—' }}
+          <td class="px-5 py-3 text-xs text-gray-400 max-w-[160px] truncate" title="{{ run.user_id or '' }}">
+            {{ run.user_id or '—' }}
           </td>
           <td class="px-5 py-3 text-right text-sm">
             <a href="/dashboard/{{ run.run_id }}" class="text-blue-600 hover:underline">View</a>
