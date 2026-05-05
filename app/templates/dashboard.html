@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Dashboard — Agent Benchmarks{% endblock %}
 {% block content %}
-<div class="max-w-5xl">
+<div class="max-w-6xl">
   <div class="flex items-center justify-between mb-6">
     <h2 class="text-xl font-semibold text-gray-800">Runs</h2>
   </div>
@@ -18,16 +18,14 @@
     </a>
   </div>
 
-  <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-x-auto">
     <table class="min-w-full divide-y divide-gray-100">
       <thead>
         <tr class="bg-gray-50">
           <th class="px-5 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wide">Time</th>
           <th class="px-5 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wide">Run</th>
-          <th class="px-5 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wide">Device</th>
-          <th class="px-5 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wide">Version</th>
           <th class="px-5 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wide">Score</th>
-          <th class="px-5 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wide">Time</th>
+          <th class="px-5 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wide">Duration</th>
           <th class="px-5 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wide">Status</th>
           <th class="px-5 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wide">By</th>
           <th class="px-5 py-3"></th>
@@ -36,11 +34,12 @@
       <tbody class="divide-y divide-gray-100">
         {% for run in runs %}
         {% set r = run.results %}
-        <tr class="hover:bg-gray-50">
+        <tr class="hover:bg-gray-50 cursor-pointer" onclick="window.location='/dashboard/{{ run.run_id }}'">
           <td class="px-5 py-3 text-sm text-gray-500 whitespace-nowrap">{{ run.timestamp[:19] | replace('T', ' ') }}</td>
-          <td class="px-5 py-3 text-sm font-medium text-gray-800">{{ run.title or run.benchmark }}</td>
-          <td class="px-5 py-3 text-sm text-gray-500 max-w-[140px] truncate" title="{{ run.device or '' }}">{{ run.device or '—' }}</td>
-          <td class="px-5 py-3 text-sm text-gray-500 font-mono text-xs">{{ run.apk_version or '—' }}</td>
+          <td class="px-5 py-3 text-sm font-medium text-gray-800">
+            {{ run.title or run.benchmark }}
+            <div class="text-xs text-gray-400 font-normal">{{ run.device or '' }}</div>
+          </td>
           <td class="px-5 py-3 text-sm">
             {% if r.get('passed') is not none %}
               <span class="text-green-600 font-medium">{{ r.get('passed') }}</span>
@@ -62,16 +61,14 @@
               <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">Completed</span>
             {% else %}<span class="text-gray-300">—</span>{% endif %}
           </td>
-          <td class="px-5 py-3 text-xs text-gray-400 max-w-[160px] truncate" title="{{ run.user_id or '' }}">
-            {{ run.user_id or '—' }}
-          </td>
+          <td class="px-5 py-3 text-sm text-gray-400">{{ run.user_id or '—' }}</td>
           <td class="px-5 py-3 text-right text-sm">
-            <a href="/dashboard/{{ run.run_id }}" class="text-blue-600 hover:underline">View</a>
+            <a href="/dashboard/{{ run.run_id }}" class="text-blue-600 hover:underline" onclick="event.stopPropagation()">View →</a>
           </td>
         </tr>
         {% else %}
         <tr>
-          <td colspan="9" class="px-5 py-10 text-center text-sm text-gray-400">No runs yet.</td>
+          <td colspan="7" class="px-5 py-10 text-center text-sm text-gray-400">No runs yet.</td>
         </tr>
         {% endfor %}
       </tbody>
