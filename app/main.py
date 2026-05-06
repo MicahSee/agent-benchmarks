@@ -6,6 +6,7 @@ from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from app.routers import runs, web
 from app.auth import hash_password
 from app.database import get_users_table
@@ -36,6 +37,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Agent Benchmarks", docs_url="/api/docs", lifespan=lifespan)
 
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
 app.include_router(web.router)
 app.include_router(runs.router, prefix="/runs", tags=["runs"])
 
