@@ -28,16 +28,18 @@ def _to_decimal(obj):
     return obj
 
 
-def _upload_log(run_id: str, log: dict) -> str | None:
+def _upload_log(run_id: str, log: str | dict) -> str | None:
     try:
         s3 = boto3.client("s3", region_name=os.environ.get("AWS_REGION", "us-east-1"))
-        key = f"gauntlet/{run_id}/log.json"
-        s3.put_object(
-            Bucket=LOG_BUCKET,
-            Key=key,
-            Body=json.dumps(log, indent=2).encode(),
-            ContentType="application/json",
-        )
+        if isinstance(log, str):
+            body = log.encode()
+            content_type = "text/markdown"
+            key = f"gauntlet/{run_id}/log.md"
+        else:
+            body = json.dumps(log, indent=2).encode()
+            content_type = "application/json"
+            key = f"gauntlet/{run_id}/log.json"
+        s3.put_object(Bucket=LOG_BUCKET, Key=key, Body=body, ContentType=content_type)
         return s3.generate_presigned_url(
             "get_object",
             Params={"Bucket": LOG_BUCKET, "Key": key},
