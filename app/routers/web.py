@@ -100,7 +100,8 @@ async def rename_run(request: Request, run_id: str, title: str = Form(...)):
         return RedirectResponse("/login")
     get_table().update_item(
         Key={"run_id": run_id},
-        UpdateExpression="SET title = :t",
+        UpdateExpression="SET #t = :t",
+        ExpressionAttributeNames={"#t": "title"},
         ExpressionAttributeValues={":t": title},
     )
     return RedirectResponse(f"/dashboard/{run_id}", status_code=303)
