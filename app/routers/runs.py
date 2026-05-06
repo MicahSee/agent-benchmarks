@@ -68,3 +68,20 @@ def get_run(run_id: str, _: str = Depends(require_api_key)):
     if not item:
         raise HTTPException(status_code=404, detail="Run not found")
     return item
+
+
+@router.patch("/{run_id}", response_model=Run)
+def patch_run(run_id: str, fields: dict, _: str = Depends(require_api_key)):
+    table = get_table()
+    if not fields:
+        raise HTTPException(status_code=400, detail="No fields to update")
+    names = {f"#f{i}": k for i, k in enumerate(fields)}
+    values = {f":v{i}": v for i, v in enumerate(fields.values())}
+    expr = "SET " + ", ".join(f"{n} = {vk}" for (n, vk) in zip(names.keys(), values.keys()))
+    table.update_item(
+        Key={"run_id": run_id},
+        UpdateExpression=expr,
+        ExpressionAttributeNames=names,
+        ExpressionAttributeValues=values,
+    )
+    return table.get_item(Key={"run_id": run_id})["Item"]

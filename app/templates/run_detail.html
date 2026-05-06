@@ -143,6 +143,20 @@
   </div>
   {% endif %}
 
+  <!-- Postmortem log link -->
+  {% if run.log_url %}
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 mb-5 flex items-center justify-between">
+    <div>
+      <p class="text-sm font-medium text-gray-700">Postmortem Log</p>
+      <p class="text-xs text-gray-400 mt-0.5">Full step-by-step log with thoughts, actions, results and UI state</p>
+    </div>
+    <a href="{{ run.log_url }}" target="_blank"
+      class="bg-gray-800 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-700 whitespace-nowrap">
+      Download Log →
+    </a>
+  </div>
+  {% endif %}
+
   <!-- Error -->
   {% if r.get('error') %}
   <div class="bg-red-50 border border-red-200 rounded-xl p-4 mb-5">

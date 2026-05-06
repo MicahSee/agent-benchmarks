@@ -14,3 +14,4 @@ class Run(RunCreate):
     run_id: str
     timestamp: str
     user_id: str | None = None
+    log_url: str | None = None
