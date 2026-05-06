@@ -88,7 +88,16 @@
       {% if r.get('total_tokens') is not none %}
       <div>
         <dt class="text-gray-400 text-xs uppercase font-medium mb-0.5">Total Tokens</dt>
-        <dd class="text-gray-700">{{ "{:,}".format(r.get('total_tokens')) }}</dd>
+        <dd class="text-gray-700">
+          {{ "{:,}".format(r.get('total_tokens')) }}
+          {% if r.get('tokens_per_agent') %}
+          <div class="mt-1 space-y-0.5">
+            {% for agent, tok in r.get('tokens_per_agent').items() | sort(attribute='1', reverse=True) %}
+            <div class="text-xs text-gray-400">{{ agent }}: {{ "{:,}".format(tok) }}</div>
+            {% endfor %}
+          </div>
+          {% endif %}
+        </dd>
       </div>
       {% endif %}
       {% if r.get('runner_version') %}
