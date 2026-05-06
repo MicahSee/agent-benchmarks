@@ -1,29 +1,30 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}Agent Benchmarks{% endblock %}</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config = { darkMode: 'class' }</script>
 </head>
-<body class="bg-gray-100 h-screen overflow-hidden">
+<body class="bg-zinc-950 text-zinc-100 h-screen overflow-hidden">
 <div class="flex h-screen">
   {% if user %}
-  <aside class="w-56 bg-gray-900 text-white flex flex-col flex-shrink-0 fixed top-0 left-0 h-full z-10">
-    <div class="p-5 border-b border-gray-700">
-      <h1 class="font-bold text-sm tracking-wide uppercase text-gray-300">Agent Benchmarks</h1>
-      <p class="text-xs text-gray-500 mt-1 truncate">{{ user }}</p>
+  <aside class="w-56 bg-zinc-900 border-r border-zinc-800 flex flex-col flex-shrink-0 fixed top-0 left-0 h-full z-10">
+    <div class="p-5 border-b border-zinc-800">
+      <h1 class="font-bold text-sm tracking-wide uppercase text-zinc-100">Agent Benchmarks</h1>
+      <p class="text-xs text-zinc-500 mt-1 truncate">{{ user }}</p>
     </div>
     <nav class="flex-1 p-3 space-y-1">
-      <a href="/dashboard" class="flex items-center gap-2 px-3 py-2 rounded text-sm {% if active == 'dashboard' %}bg-gray-700 text-white{% else %}text-gray-400 hover:bg-gray-800 hover:text-white{% endif %}">
+      <a href="/dashboard" class="flex items-center gap-2 px-3 py-2 rounded text-sm {% if active == 'dashboard' %}bg-zinc-800 text-white{% else %}text-zinc-400 hover:bg-zinc-800 hover:text-white{% endif %}">
         Dashboard
       </a>
-      <a href="/settings" class="flex items-center gap-2 px-3 py-2 rounded text-sm {% if active == 'settings' %}bg-gray-700 text-white{% else %}text-gray-400 hover:bg-gray-800 hover:text-white{% endif %}">
+      <a href="/settings" class="flex items-center gap-2 px-3 py-2 rounded text-sm {% if active == 'settings' %}bg-zinc-800 text-white{% else %}text-zinc-400 hover:bg-zinc-800 hover:text-white{% endif %}">
         Settings
       </a>
     </nav>
-    <div class="p-3 border-t border-gray-700">
-      <a href="/logout" class="block px-3 py-2 rounded text-xs text-gray-500 hover:text-gray-300">Sign out</a>
+    <div class="p-3 border-t border-zinc-800">
+      <a href="/logout" class="block px-3 py-2 rounded text-xs text-zinc-500 hover:text-zinc-300">Sign out</a>
     </div>
   </aside>
   {% endif %}
