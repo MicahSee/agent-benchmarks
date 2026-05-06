@@ -13,7 +13,7 @@
     <form id="rename-form" action="/dashboard/{{ run.run_id }}/rename" method="post" class="hidden items-center gap-2">
       <input id="rename-input" name="title" type="text" value="{{ run.title or run.benchmark }}"
         class="bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-1.5 text-sm text-zinc-100 focus:outline-none focus:ring-2 focus:ring-zinc-500 w-80">
-      <button type="submit" class="text-sm bg-zinc-100 text-zinc-900 px-3 py-1.5 rounded-lg hover:bg-white">Save</button>
+      <button type="submit" class="text-sm bg-amber-500 text-zinc-900 px-3 py-1.5 rounded-lg hover:bg-amber-400">Save</button>
       <button type="button" onclick="hideRename()" class="text-sm text-zinc-500 hover:text-zinc-300">Cancel</button>
     </form>
     <script>
@@ -119,7 +119,7 @@
       <p class="text-xs text-zinc-500 mt-0.5">Full step-by-step log with thoughts, actions, results and UI state</p>
     </div>
     <a href="{{ run.log_url }}" target="_blank"
-      class="bg-zinc-100 text-zinc-900 px-4 py-2 rounded-lg text-sm font-medium hover:bg-white whitespace-nowrap">
+      class="bg-amber-500 text-zinc-900 px-4 py-2 rounded-lg text-sm font-medium hover:bg-amber-400 whitespace-nowrap">
       Download →
     </a>
   </div>
