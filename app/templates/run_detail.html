@@ -104,21 +104,29 @@
     </dl>
   </div>
 
-  <!-- Effort per task -->
-  {% if r.get('effort_per_task') %}
+  <!-- Per-task stats -->
+  {% set effort = r.get('effort_per_task') %}
+  {% set per_task = r.get('stats_per_task') %}
+  {% if effort or per_task %}
+  {% set tasks_to_show = (per_task or effort).keys() | list %}
+  {% set max_time = effort.values() | max if effort else 1 %}
   <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-5">
-    <h3 class="text-sm font-medium text-gray-700 mb-4">Time per Challenge</h3>
-    <div class="space-y-3">
-      {% set effort = r.get('effort_per_task') %}
-      {% set max_time = effort.values() | max %}
-      {% for task_name, seconds in effort.items() %}
+    <h3 class="text-sm font-medium text-gray-700 mb-4">Effort per Challenge</h3>
+    <div class="space-y-4">
+      {% for task_name in tasks_to_show %}
+      {% set seconds = effort.get(task_name, 0) if effort else 0 %}
+      {% set pt = per_task.get(task_name, {}) if per_task else {} %}
       <div>
         <div class="flex justify-between text-sm mb-1">
-          <span class="text-gray-700 capitalize">{{ task_name }}</span>
-          <span class="text-gray-500">{{ "%.0f"|format(seconds) }}s</span>
+          <span class="text-gray-700 capitalize font-medium">{{ task_name }}</span>
+          <span class="text-gray-500 text-xs space-x-3">
+            {% if seconds %}<span>{{ "%.0f"|format(seconds) }}s</span>{% endif %}
+            {% if pt.get('steps') %}<span>{{ pt.steps }} steps</span>{% endif %}
+            {% if pt.get('tokens') %}<span>{{ "{:,}".format(pt.tokens) }} tok</span>{% endif %}
+          </span>
         </div>
         <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
-          <div class="h-2 bg-blue-500 rounded-full" style="width: {{ (seconds / max_time * 100)|int }}%"></div>
+          <div class="h-2 bg-blue-500 rounded-full" style="width: {{ ((seconds / max_time * 100) if max_time else 0)|int }}%"></div>
         </div>
       </div>
       {% endfor %}
