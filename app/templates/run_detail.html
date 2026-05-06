@@ -2,19 +2,31 @@
 {% block title %}Run {{ run.run_id[:8] }} — Agent Benchmarks{% endblock %}
 {% block content %}
 {% set r = run.results %}
-<div class="max-w-3xl">
-  <div class="flex items-center gap-3 mb-6 flex-wrap">
-    <a href="/dashboard" class="text-sm text-zinc-500 hover:text-zinc-300">← Runs</a>
-    <span class="text-zinc-700">/</span>
-    <div id="title-display" class="flex items-center gap-2">
-      <h2 class="text-xl font-semibold text-zinc-100">{{ run.title or run.benchmark }}</h2>
-      <button onclick="showRename()" class="text-xs text-zinc-600 hover:text-zinc-400 px-1.5 py-0.5 rounded border border-zinc-700 hover:border-zinc-500">Rename</button>
+<div class="p-8 max-w-3xl">
+
+  <!-- Breadcrumb + title -->
+  <div class="flex items-center gap-2 mb-1">
+    <a href="/dashboard" class="text-xs text-zinc-600 hover:text-zinc-400 uppercase tracking-wide font-semibold">← Runs</a>
+  </div>
+  <div class="flex items-center gap-3 mb-6 border-b border-zinc-800 pb-4">
+    <div id="title-display" class="flex items-center gap-3 flex-1">
+      <h2 class="text-lg font-semibold text-zinc-100">{{ run.title or run.benchmark }}</h2>
+      {% if r.get('all_success') %}
+        <span class="text-xs font-semibold uppercase tracking-wide text-green-400">All Passed</span>
+      {% elif r.get('completed') == false %}
+        <span class="text-xs font-semibold uppercase tracking-wide text-yellow-500">Timed Out</span>
+      {% elif r.get('error') %}
+        <span class="text-xs font-semibold uppercase tracking-wide text-red-500">Error</span>
+      {% elif r.get('completed') %}
+        <span class="text-xs font-semibold uppercase tracking-wide text-zinc-500">Completed</span>
+      {% endif %}
+      <button onclick="showRename()" class="text-xs text-zinc-600 hover:text-zinc-400 ml-auto border border-zinc-800 px-2 py-1 hover:border-zinc-600">Rename</button>
     </div>
-    <form id="rename-form" action="/dashboard/{{ run.run_id }}/rename" method="post" class="hidden items-center gap-2">
+    <form id="rename-form" action="/dashboard/{{ run.run_id }}/rename" method="post" class="hidden items-center gap-2 flex-1">
       <input id="rename-input" name="title" type="text" value="{{ run.title or run.benchmark }}"
-        class="bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-1.5 text-sm text-zinc-100 focus:outline-none focus:ring-2 focus:ring-zinc-500 w-80">
-      <button type="submit" class="text-sm bg-amber-500 text-zinc-900 px-3 py-1.5 rounded-lg hover:bg-amber-400">Save</button>
-      <button type="button" onclick="hideRename()" class="text-sm text-zinc-500 hover:text-zinc-300">Cancel</button>
+        class="bg-zinc-900 border border-zinc-700 px-3 py-1.5 text-sm text-zinc-100 focus:outline-none focus:border-amber-500 flex-1">
+      <button type="submit" class="text-sm bg-amber-500 text-zinc-900 px-3 py-1.5 font-semibold hover:bg-amber-400">Save</button>
+      <button type="button" onclick="hideRename()" class="text-sm text-zinc-600 hover:text-zinc-400">Cancel</button>
     </form>
     <script>
       function showRename() {
@@ -32,66 +44,54 @@
         form.classList.remove('flex');
       }
     </script>
-    {% if r.get('all_success') %}
-      <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-900 text-green-400">All passed</span>
-    {% elif r.get('completed') == false %}
-      <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-900 text-yellow-400">Timed out</span>
-    {% elif r.get('error') %}
-      <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-900 text-red-400">Error</span>
-    {% elif r.get('completed') %}
-      <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-zinc-800 text-zinc-300">Completed</span>
-    {% endif %}
   </div>
 
-  <!-- Metadata -->
-  <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-6 mb-5">
-    <dl class="grid grid-cols-2 gap-x-8 gap-y-4 text-sm">
-      <div>
-        <dt class="text-zinc-500 text-xs uppercase font-medium mb-0.5">Run ID</dt>
-        <dd class="font-mono text-zinc-400 text-xs">{{ run.run_id }}</dd>
+  <!-- Metadata grid -->
+  <div class="border border-zinc-800 mb-5">
+    <div class="grid grid-cols-2 divide-y divide-zinc-800">
+      <div class="px-4 py-3 border-r border-zinc-800">
+        <dt class="text-xs font-semibold uppercase tracking-wider text-zinc-600 mb-1">Run ID</dt>
+        <dd class="font-mono text-xs text-zinc-400">{{ run.run_id }}</dd>
       </div>
-      <div>
-        <dt class="text-zinc-500 text-xs uppercase font-medium mb-0.5">Timestamp</dt>
-        <dd class="text-zinc-300">{{ run.timestamp[:19] | replace('T', ' ') }} UTC</dd>
+      <div class="px-4 py-3">
+        <dt class="text-xs font-semibold uppercase tracking-wider text-zinc-600 mb-1">Timestamp</dt>
+        <dd class="text-sm text-zinc-300">{{ run.timestamp[:19] | replace('T', ' ') }} UTC</dd>
       </div>
-      <div>
-        <dt class="text-zinc-500 text-xs uppercase font-medium mb-0.5">Device</dt>
-        <dd class="text-zinc-300">{{ run.device or '—' }}</dd>
+      <div class="px-4 py-3 border-r border-zinc-800">
+        <dt class="text-xs font-semibold uppercase tracking-wider text-zinc-600 mb-1">Device</dt>
+        <dd class="text-sm text-zinc-300">{{ run.device or '—' }}</dd>
       </div>
-      <div>
-        <dt class="text-zinc-500 text-xs uppercase font-medium mb-0.5">APK Version</dt>
-        <dd class="font-mono text-zinc-400 text-xs">{{ run.apk_version or '—' }}</dd>
+      <div class="px-4 py-3">
+        <dt class="text-xs font-semibold uppercase tracking-wider text-zinc-600 mb-1">APK Version</dt>
+        <dd class="font-mono text-xs text-zinc-400">{{ run.apk_version or '—' }}</dd>
       </div>
-      <div>
-        <dt class="text-zinc-500 text-xs uppercase font-medium mb-0.5">Run Time</dt>
-        <dd class="text-zinc-300">
-          {% if r.get('run_time_seconds') is not none %}{{ "%.1f"|format(r.get('run_time_seconds')) }}s{% else %}—{% endif %}
-        </dd>
+      <div class="px-4 py-3 border-r border-zinc-800">
+        <dt class="text-xs font-semibold uppercase tracking-wider text-zinc-600 mb-1">Run Time</dt>
+        <dd class="text-sm text-zinc-300">{% if r.get('run_time_seconds') is not none %}{{ "%.1f"|format(r.get('run_time_seconds')) }}s{% else %}—{% endif %}</dd>
       </div>
-      <div>
-        <dt class="text-zinc-500 text-xs uppercase font-medium mb-0.5">Score</dt>
-        <dd class="text-zinc-300">
+      <div class="px-4 py-3">
+        <dt class="text-xs font-semibold uppercase tracking-wider text-zinc-600 mb-1">Score</dt>
+        <dd class="text-sm text-zinc-300">
           {% if r.get('passed') is not none %}
-            <span class="text-green-400 font-semibold">{{ r.get('passed') }}</span>
-            / {{ r.get('tasks_total', r.get('passed', 0) + r.get('failed', 0)) }} tasks passed
+            <span class="text-green-400 font-semibold">{{ r.get('passed') }}</span> / {{ r.get('tasks_total', r.get('passed', 0) + r.get('failed', 0)) }} passed
           {% else %}—{% endif %}
         </dd>
       </div>
       {% if r.get('steps_taken') is not none %}
-      <div>
-        <dt class="text-zinc-500 text-xs uppercase font-medium mb-0.5">Steps Taken</dt>
-        <dd class="text-zinc-300">{{ r.get('steps_taken') }}</dd>
+      <div class="px-4 py-3 border-r border-zinc-800">
+        <dt class="text-xs font-semibold uppercase tracking-wider text-zinc-600 mb-1">Steps</dt>
+        <dd class="text-sm text-zinc-300">{{ r.get('steps_taken') }}</dd>
       </div>
       {% endif %}
       {% if r.get('total_tokens') is not none %}
-      <div>
-        <dt class="text-zinc-500 text-xs uppercase font-medium mb-0.5">Total Tokens</dt>
-        <dd class="text-zinc-300">
+      <div class="px-4 py-3 {% if r.get('steps_taken') is not none %}{% else %}border-r border-zinc-800{% endif %}">
+        <dt class="text-xs font-semibold uppercase tracking-wider text-zinc-600 mb-1">Tokens</dt>
+        <dd class="text-sm text-zinc-300">
           {{ "{:,}".format(r.get('total_tokens')) }}
           {% if r.get('tokens_per_agent') %}
           <div class="mt-1 space-y-0.5">
             {% for agent, tok in r.get('tokens_per_agent').items() | sort(attribute='1', reverse=True) %}
-            <div class="text-xs text-zinc-500">{{ agent }}: {{ "{:,}".format(tok) }}</div>
+            <div class="text-xs text-zinc-600">{{ agent }}: {{ "{:,}".format(tok) }}</div>
             {% endfor %}
           </div>
           {% endif %}
@@ -99,27 +99,23 @@
       </div>
       {% endif %}
       {% if r.get('runner_version') %}
-      <div>
-        <dt class="text-zinc-500 text-xs uppercase font-medium mb-0.5">droidrun Version</dt>
-        <dd class="font-mono text-zinc-400 text-xs">{{ r.get('runner_version') }}</dd>
-      </div>
-      <div>
-        <dt class="text-zinc-500 text-xs uppercase font-medium mb-0.5">droidrun Branch</dt>
-        <dd class="font-mono text-zinc-400 text-xs">{{ r.get('runner_branch', '—') }}</dd>
+      <div class="px-4 py-3 border-r border-zinc-800 border-t border-zinc-800">
+        <dt class="text-xs font-semibold uppercase tracking-wider text-zinc-600 mb-1">droidrun</dt>
+        <dd class="font-mono text-xs text-zinc-400">{{ r.get('runner_version') }} ({{ r.get('runner_branch', '—') }})</dd>
       </div>
       {% endif %}
-    </dl>
+    </div>
   </div>
 
   <!-- CoT log download -->
   {% if run.log_url %}
-  <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-5 mb-5 flex items-center justify-between">
+  <div class="border border-zinc-800 p-4 mb-5 flex items-center justify-between">
     <div>
-      <p class="text-sm font-medium text-zinc-200">CoT Log</p>
-      <p class="text-xs text-zinc-500 mt-0.5">Full step-by-step log with thoughts, actions, results and UI state</p>
+      <p class="text-sm font-semibold text-zinc-200">CoT Log</p>
+      <p class="text-xs text-zinc-600 mt-0.5">Step-by-step log — thoughts, actions, results, UI state</p>
     </div>
     <a href="{{ run.log_url }}" target="_blank"
-      class="bg-amber-500 text-zinc-900 px-4 py-2 rounded-lg text-sm font-medium hover:bg-amber-400 whitespace-nowrap">
+      class="bg-amber-500 text-zinc-900 px-4 py-2 text-sm font-semibold hover:bg-amber-400 whitespace-nowrap">
       Download →
     </a>
   </div>
@@ -127,8 +123,8 @@
 
   <!-- Error -->
   {% if r.get('error') %}
-  <div class="bg-red-950 border border-red-800 rounded-xl p-4 mb-5">
-    <p class="text-xs font-medium text-red-500 uppercase mb-1">Error</p>
+  <div class="border-l-4 border-red-500 bg-red-950 px-4 py-3 mb-5">
+    <p class="text-xs font-semibold uppercase tracking-wide text-red-500 mb-1">Error</p>
     <p class="text-sm text-red-400 font-mono">{{ r.get('error') }}</p>
   </div>
   {% endif %}
@@ -139,24 +135,23 @@
   {% if effort or per_task %}
   {% set tasks_to_show = (per_task or effort).keys() | list %}
   {% set total_time = effort.values() | sum if effort else 1 %}
-  {% set max_time = total_time %}
-  <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-6 mb-5">
-    <h3 class="text-sm font-medium text-zinc-300 mb-4">Effort per Challenge</h3>
-    <div class="space-y-4">
+  <div class="border border-zinc-800 p-4 mb-5">
+    <h3 class="text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-4">Effort per Challenge</h3>
+    <div class="space-y-3">
       {% for task_name in tasks_to_show %}
       {% set seconds = effort.get(task_name, 0) if effort else 0 %}
       {% set pt = per_task.get(task_name, {}) if per_task else {} %}
       <div>
-        <div class="flex justify-between text-sm mb-1">
-          <span class="text-zinc-300 capitalize font-medium">{{ task_name }}</span>
-          <span class="text-zinc-500 text-xs space-x-3">
-            {% if seconds %}<span>{{ "%.0f"|format(seconds) }}s ({{ "%.0f"|format(seconds / total_time * 100) }}%)</span>{% endif %}
+        <div class="flex justify-between text-xs mb-1.5">
+          <span class="text-zinc-300 font-semibold uppercase tracking-wide">{{ task_name }}</span>
+          <span class="text-zinc-600 space-x-3">
+            {% if seconds %}<span>{{ "%.0f"|format(seconds) }}s · {{ "%.0f"|format(seconds / total_time * 100) }}%</span>{% endif %}
             {% if pt.get('steps') %}<span>{{ pt.steps }} steps</span>{% endif %}
             {% if pt.get('tokens') %}<span>{{ "{:,}".format(pt.tokens) }} tok</span>{% endif %}
           </span>
         </div>
-        <div class="h-1.5 bg-zinc-800 rounded-full overflow-hidden">
-          <div class="h-1.5 bg-zinc-400 rounded-full" style="width: {{ ((seconds / max_time * 100) if max_time else 0)|int }}%"></div>
+        <div class="h-1 bg-zinc-800">
+          <div class="h-1 bg-amber-500" style="width: {{ ((seconds / total_time * 100) if total_time else 0)|int }}%"></div>
         </div>
       </div>
       {% endfor %}
@@ -166,35 +161,29 @@
 
   <!-- Per-task results -->
   {% if r.get('tasks') %}
-  <div class="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
-    <div class="px-5 py-4 border-b border-zinc-800">
-      <h3 class="text-sm font-medium text-zinc-300">Task Results</h3>
+  <div class="border border-zinc-800">
+    <div class="px-4 py-3 border-b border-zinc-800 bg-zinc-900">
+      <h3 class="text-xs font-semibold uppercase tracking-wider text-zinc-500">Task Results</h3>
     </div>
     <table class="min-w-full divide-y divide-zinc-800">
-      <thead>
-        <tr class="bg-zinc-900">
-          <th class="px-5 py-3 text-left text-xs font-medium text-zinc-500 uppercase">Task</th>
-          <th class="px-5 py-3 text-left text-xs font-medium text-zinc-500 uppercase">Result</th>
-          <th class="px-5 py-3 text-left text-xs font-medium text-zinc-500 uppercase">Details</th>
-        </tr>
-      </thead>
-      <tbody class="divide-y divide-zinc-800">
+      <tbody class="divide-y divide-zinc-800 bg-zinc-950">
         {% for task_name, task in r.get('tasks', {}).items() %}
         <tr>
-          <td class="px-5 py-3 text-sm font-medium text-zinc-200">{{ task_name }}</td>
-          <td class="px-5 py-3 text-sm">
+          <td class="px-4 py-3 text-sm font-medium text-zinc-200 w-40">{{ task_name }}</td>
+          <td class="px-4 py-3 text-xs font-semibold uppercase tracking-wide w-16">
             {% if task.get('success') %}
-              <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-900 text-green-400">Pass</span>
+              <span class="text-green-400">Pass</span>
             {% else %}
-              <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-900 text-red-400">Fail</span>
+              <span class="text-red-500">Fail</span>
             {% endif %}
           </td>
-          <td class="px-5 py-3 text-sm text-zinc-500">{{ task.get('details') or task.get('message') or '—' }}</td>
+          <td class="px-4 py-3 text-sm text-zinc-500">{{ task.get('details') or task.get('message') or '—' }}</td>
         </tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
   {% endif %}
+
 </div>
 {% endblock %}

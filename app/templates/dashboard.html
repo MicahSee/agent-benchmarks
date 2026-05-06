@@ -1,74 +1,76 @@
 {% extends "base.html" %}
 {% block title %}Dashboard — Agent Benchmarks{% endblock %}
 {% block content %}
-<div class="max-w-6xl">
-  <div class="flex items-center justify-between mb-6">
-    <h2 class="text-xl font-semibold text-zinc-100">Runs</h2>
+<div class="p-8">
+  <!-- Page header -->
+  <div class="border-b border-zinc-800 pb-4 mb-6">
+    <h2 class="text-lg font-semibold text-zinc-100">Runs</h2>
   </div>
 
   <!-- Tabs -->
-  <div class="flex gap-1 mb-6 border-b border-zinc-800">
+  <div class="flex border-b border-zinc-800 mb-6">
     <a href="/dashboard?tab=all"
-      class="px-4 py-2 text-sm font-medium {% if tab == 'all' %}text-zinc-100 border-b-2 border-zinc-100{% else %}text-zinc-500 hover:text-zinc-300{% endif %}">
+      class="px-4 py-2.5 text-sm font-medium border-b-2 {% if tab == 'all' %}border-amber-500 text-zinc-100{% else %}border-transparent text-zinc-500 hover:text-zinc-300{% endif %}">
       All Runs
     </a>
     <a href="/dashboard?tab=mine"
-      class="px-4 py-2 text-sm font-medium {% if tab == 'mine' %}text-zinc-100 border-b-2 border-zinc-100{% else %}text-zinc-500 hover:text-zinc-300{% endif %}">
+      class="px-4 py-2.5 text-sm font-medium border-b-2 {% if tab == 'mine' %}border-amber-500 text-zinc-100{% else %}border-transparent text-zinc-500 hover:text-zinc-300{% endif %}">
       My Runs
     </a>
   </div>
 
-  <div class="bg-zinc-900 border border-zinc-800 rounded-xl overflow-x-auto">
+  <!-- Table -->
+  <div class="border border-zinc-800 overflow-x-auto">
     <table class="min-w-full divide-y divide-zinc-800">
       <thead>
         <tr class="bg-zinc-900">
-          <th class="px-5 py-3 text-left text-xs font-medium text-zinc-500 uppercase tracking-wide">Time</th>
-          <th class="px-5 py-3 text-left text-xs font-medium text-zinc-500 uppercase tracking-wide">Run</th>
-          <th class="px-5 py-3 text-left text-xs font-medium text-zinc-500 uppercase tracking-wide">Score</th>
-          <th class="px-5 py-3 text-left text-xs font-medium text-zinc-500 uppercase tracking-wide">Duration</th>
-          <th class="px-5 py-3 text-left text-xs font-medium text-zinc-500 uppercase tracking-wide">Status</th>
-          <th class="px-5 py-3 text-left text-xs font-medium text-zinc-500 uppercase tracking-wide">By</th>
-          <th class="px-5 py-3"></th>
+          <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">Time</th>
+          <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">Run</th>
+          <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">Score</th>
+          <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">Duration</th>
+          <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">Status</th>
+          <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">By</th>
+          <th class="px-4 py-3"></th>
         </tr>
       </thead>
-      <tbody class="divide-y divide-zinc-800">
+      <tbody class="divide-y divide-zinc-800 bg-zinc-950">
         {% for run in runs %}
         {% set r = run.results %}
-        <tr class="hover:bg-zinc-800 cursor-pointer transition-colors" onclick="window.location='/dashboard/{{ run.run_id }}'">
-          <td class="px-5 py-3 text-sm text-zinc-500 whitespace-nowrap">{{ run.timestamp[:19] | replace('T', ' ') }}</td>
-          <td class="px-5 py-3 text-sm font-medium text-zinc-100">
+        <tr class="hover:bg-zinc-900 cursor-pointer" onclick="window.location='/dashboard/{{ run.run_id }}'">
+          <td class="px-4 py-3 text-sm text-zinc-500 whitespace-nowrap">{{ run.timestamp[:19] | replace('T', ' ') }}</td>
+          <td class="px-4 py-3 text-sm font-medium text-zinc-100">
             {{ run.title or run.benchmark }}
-            <div class="text-xs text-zinc-500 font-normal">{{ run.device or '' }}</div>
+            <div class="text-xs text-zinc-600 font-normal">{{ run.device or '' }}</div>
           </td>
-          <td class="px-5 py-3 text-sm">
+          <td class="px-4 py-3 text-sm">
             {% if r.get('passed') is not none %}
               <span class="text-green-400 font-medium">{{ r.get('passed') }}</span>
-              <span class="text-zinc-600">/</span>
+              <span class="text-zinc-700">/</span>
               <span class="text-zinc-400">{{ r.get('tasks_total', (r.get('passed', 0) + r.get('failed', 0))) }}</span>
-            {% else %}<span class="text-zinc-600">—</span>{% endif %}
+            {% else %}<span class="text-zinc-700">—</span>{% endif %}
           </td>
-          <td class="px-5 py-3 text-sm text-zinc-400 whitespace-nowrap">
+          <td class="px-4 py-3 text-sm text-zinc-500 whitespace-nowrap">
             {% if r.get('run_time_seconds') is not none %}{{ "%.0f"|format(r.get('run_time_seconds')) }}s{% else %}—{% endif %}
           </td>
-          <td class="px-5 py-3 text-sm">
+          <td class="px-4 py-3 text-sm">
             {% if r.get('all_success') %}
-              <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-900 text-green-400">All passed</span>
+              <span class="text-xs font-semibold uppercase tracking-wide text-green-400">Passed</span>
             {% elif r.get('completed') == false %}
-              <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-900 text-yellow-400">Timed out</span>
+              <span class="text-xs font-semibold uppercase tracking-wide text-yellow-500">Timeout</span>
             {% elif r.get('error') %}
-              <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-900 text-red-400">Error</span>
+              <span class="text-xs font-semibold uppercase tracking-wide text-red-500">Error</span>
             {% elif r.get('completed') %}
-              <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-zinc-800 text-zinc-300">Completed</span>
-            {% else %}<span class="text-zinc-600">—</span>{% endif %}
+              <span class="text-xs font-semibold uppercase tracking-wide text-zinc-400">Done</span>
+            {% else %}<span class="text-zinc-700">—</span>{% endif %}
           </td>
-          <td class="px-5 py-3 text-sm text-zinc-500">{{ run.user_id or '—' }}</td>
-          <td class="px-5 py-3 text-right text-sm whitespace-nowrap">
-            <a href="/dashboard/{{ run.run_id }}" class="text-zinc-400 hover:text-zinc-100" onclick="event.stopPropagation()">View →</a>
+          <td class="px-4 py-3 text-sm text-zinc-600">{{ run.user_id or '—' }}</td>
+          <td class="px-4 py-3 text-right text-sm whitespace-nowrap">
+            <a href="/dashboard/{{ run.run_id }}" class="text-amber-500 hover:text-amber-400 text-xs font-semibold uppercase tracking-wide" onclick="event.stopPropagation()">View →</a>
           </td>
         </tr>
         {% else %}
         <tr>
-          <td colspan="7" class="px-5 py-10 text-center text-sm text-zinc-600">No runs yet.</td>
+          <td colspan="7" class="px-4 py-12 text-center text-sm text-zinc-700">No runs yet.</td>
         </tr>
         {% endfor %}
       </tbody>

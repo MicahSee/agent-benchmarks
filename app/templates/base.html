@@ -7,28 +7,28 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script>tailwind.config = { darkMode: 'class' }</script>
 </head>
-<body class="bg-zinc-950 text-zinc-100 h-screen overflow-hidden">
+<body class="bg-zinc-950 text-zinc-100 h-screen overflow-hidden font-sans">
 <div class="flex h-screen">
   {% if user %}
   <aside class="w-56 bg-zinc-900 border-r border-zinc-800 flex flex-col flex-shrink-0 fixed top-0 left-0 h-full z-10">
-    <div class="p-5 border-b border-zinc-800">
-      <h1 class="font-bold text-sm tracking-wide uppercase text-zinc-100">Agent Benchmarks</h1>
-      <p class="text-xs text-zinc-500 mt-1 truncate">{{ user }}</p>
+    <div class="px-4 py-4 border-b border-zinc-800">
+      <h1 class="text-xs font-semibold tracking-widest uppercase text-zinc-400">Agent Benchmarks</h1>
+      <p class="text-xs text-zinc-600 mt-1 truncate">{{ user }}</p>
     </div>
-    <nav class="flex-1 p-3 space-y-1">
-      <a href="/dashboard" class="flex items-center gap-2 px-3 py-2 rounded text-sm {% if active == 'dashboard' %}bg-zinc-800 text-white{% else %}text-zinc-400 hover:bg-zinc-800 hover:text-white{% endif %}">
+    <nav class="flex-1 py-2">
+      <a href="/dashboard" class="flex items-center px-4 py-2.5 text-sm border-l-2 {% if active == 'dashboard' %}border-amber-500 text-zinc-100 bg-zinc-800{% else %}border-transparent text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200{% endif %}">
         Dashboard
       </a>
-      <a href="/settings" class="flex items-center gap-2 px-3 py-2 rounded text-sm {% if active == 'settings' %}bg-zinc-800 text-white{% else %}text-zinc-400 hover:bg-zinc-800 hover:text-white{% endif %}">
+      <a href="/settings" class="flex items-center px-4 py-2.5 text-sm border-l-2 {% if active == 'settings' %}border-amber-500 text-zinc-100 bg-zinc-800{% else %}border-transparent text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200{% endif %}">
         Settings
       </a>
     </nav>
-    <div class="p-3 border-t border-zinc-800">
-      <a href="/logout" class="block px-3 py-2 rounded text-xs text-zinc-500 hover:text-zinc-300">Sign out</a>
+    <div class="px-4 py-3 border-t border-zinc-800">
+      <a href="/logout" class="text-xs text-zinc-600 hover:text-zinc-400">Sign out</a>
     </div>
   </aside>
   {% endif %}
-  <div class="{{ 'flex-1 p-8 overflow-y-auto ml-56' if user else 'flex-1' }}">
+  <div class="{{ 'flex-1 overflow-y-auto ml-56' if user else 'flex-1' }}">
     {% block content %}{% endblock %}
   </div>
 </div>
