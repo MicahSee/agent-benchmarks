@@ -144,16 +144,16 @@
   </div>
   {% endif %}
 
-  <!-- Postmortem log link -->
+  <!-- CoT log download -->
   {% if run.log_url %}
   <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 mb-5 flex items-center justify-between">
     <div>
-      <p class="text-sm font-medium text-gray-700">Postmortem Log</p>
+      <p class="text-sm font-medium text-gray-700">CoT Log</p>
       <p class="text-xs text-gray-400 mt-0.5">Full step-by-step log with thoughts, actions, results and UI state</p>
     </div>
     <a href="{{ run.log_url }}" target="_blank"
       class="bg-gray-800 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-700 whitespace-nowrap">
-      Download Log →
+      Download →
     </a>
   </div>
   {% endif %}
@@ -163,24 +163,6 @@
   <div class="bg-red-50 border border-red-200 rounded-xl p-4 mb-5">
     <p class="text-xs font-medium text-red-700 uppercase mb-1">Error</p>
     <p class="text-sm text-red-800 font-mono">{{ r.get('error') }}</p>
-  </div>
-  {% endif %}
-
-  <!-- CoT log -->
-  {% if r.get('cot_log') %}
-  <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-5">
-    <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-      <h3 class="text-sm font-medium text-gray-700">Chain of Thought</h3>
-      <span class="text-xs text-gray-400">{{ r.get('cot_log') | length }} steps</span>
-    </div>
-    <div class="divide-y divide-gray-100 max-h-96 overflow-y-auto">
-      {% for thought in r.get('cot_log') %}
-      <div class="px-5 py-3">
-        <div class="text-xs font-medium text-gray-400 mb-1">Step {{ loop.index }}</div>
-        <p class="text-sm text-gray-700 whitespace-pre-wrap">{{ thought }}</p>
-      </div>
-      {% endfor %}
-    </div>
   </div>
   {% endif %}
 
