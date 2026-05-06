@@ -83,6 +83,12 @@
         <dd class="text-sm text-zinc-300">{{ r.get('steps_taken') }}</dd>
       </div>
       {% endif %}
+      {% if r.get('vision_locate_calls') is not none %}
+      <div class="px-4 py-3 border-r border-zinc-800">
+        <dt class="text-xs font-semibold uppercase tracking-wider text-zinc-600 mb-1">Vision Calls</dt>
+        <dd class="text-sm text-zinc-300">{{ r.get('vision_locate_calls') }}</dd>
+      </div>
+      {% endif %}
       {% if r.get('total_tokens') is not none %}
       <div class="px-4 py-3 {% if r.get('steps_taken') is not none %}{% else %}border-r border-zinc-800{% endif %}">
         <dt class="text-xs font-semibold uppercase tracking-wider text-zinc-600 mb-1">Tokens</dt>
