@@ -65,6 +65,12 @@
         <dt class="text-xs font-semibold uppercase tracking-wider text-zinc-600 mb-1">APK Version</dt>
         <dd class="font-mono text-xs text-zinc-400">{{ run.apk_version or '—' }}</dd>
       </div>
+      {% if run.deployment_name %}
+      <div class="px-4 py-3 border-r border-zinc-800">
+        <dt class="text-xs font-semibold uppercase tracking-wider text-zinc-600 mb-1">Deployment</dt>
+        <dd class="text-sm text-zinc-300">{{ run.deployment_name }}</dd>
+      </div>
+      {% endif %}
       <div class="px-4 py-3 border-r border-zinc-800">
         <dt class="text-xs font-semibold uppercase tracking-wider text-zinc-600 mb-1">Run Time</dt>
         <dd class="text-sm text-zinc-300">{% if r.get('run_time_seconds') is not none %}{{ "%.1f"|format(r.get('run_time_seconds')) }}s{% else %}—{% endif %}</dd>

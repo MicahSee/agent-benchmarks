@@ -15,3 +15,4 @@ class Run(RunCreate):
     timestamp: str
     user_id: str | None = None
     log_url: str | None = None
+    deployment_name: str | None = None

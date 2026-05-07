@@ -29,6 +29,7 @@
           <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">Score</th>
           <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">Duration</th>
           <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">Status</th>
+          <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">Deployment</th>
           <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">By</th>
           <th class="px-4 py-3"></th>
         </tr>
@@ -63,6 +64,7 @@
               <span class="text-xs font-semibold uppercase tracking-wide text-zinc-400">Done</span>
             {% else %}<span class="text-zinc-700">—</span>{% endif %}
           </td>
+          <td class="px-4 py-3 text-sm text-zinc-600">{{ run.deployment_name or '—' }}</td>
           <td class="px-4 py-3 text-sm text-zinc-600">{{ run.user_id or '—' }}</td>
           <td class="px-4 py-3 text-right text-sm whitespace-nowrap">
             <a href="/dashboard/{{ run.run_id }}" class="text-amber-500 hover:text-amber-400 text-xs font-semibold uppercase tracking-wide" onclick="event.stopPropagation()">View →</a>
@@ -70,7 +72,7 @@
         </tr>
         {% else %}
         <tr>
-          <td colspan="7" class="px-4 py-12 text-center text-sm text-zinc-700">No runs yet.</td>
+          <td colspan="8" class="px-4 py-12 text-center text-sm text-zinc-700">No runs yet.</td>
         </tr>
         {% endfor %}
       </tbody>
