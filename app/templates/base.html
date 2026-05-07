@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="dark" style="font-size: 11px;">
+<html lang="en" class="dark" style="font-size: 13px;">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,7 +11,7 @@
 <body class="bg-zinc-950 text-zinc-100 h-screen overflow-hidden font-sans">
 <div class="flex h-screen">
   {% if user %}
-  <aside class="w-56 bg-zinc-900 border-r border-zinc-800 flex flex-col flex-shrink-0 fixed top-0 left-0 h-full z-10">
+  <aside class="w-64 bg-zinc-900 border-r border-zinc-800 flex flex-col flex-shrink-0 fixed top-0 left-0 h-full z-10">
     <div class="px-4 py-4 border-b border-zinc-800">
       <h1 class="text-xs font-semibold tracking-widest uppercase text-zinc-400">Agent Benchmarks</h1>
       <p class="text-xs text-zinc-600 mt-1 truncate">{{ user }}</p>
@@ -32,7 +32,7 @@
     </div>
   </aside>
   {% endif %}
-  <div class="{{ 'flex-1 overflow-y-auto ml-56' if user else 'flex-1' }}">
+  <div class="{{ 'flex-1 overflow-y-auto ml-64' if user else 'flex-1' }}">
     {% block content %}{% endblock %}
   </div>
 </div>
