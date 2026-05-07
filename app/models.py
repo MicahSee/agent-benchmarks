@@ -8,6 +8,7 @@ class RunCreate(BaseModel):
     title: str | None = None
     device: str | None = None
     apk_version: str | None = None
+    deployment_name: str | None = None
     results: dict[str, Any]
 
 
@@ -16,4 +17,3 @@ class Run(RunCreate):
     timestamp: str
     user_id: str | None = None
     log_url: str | None = None
-    deployment_name: str | None = None
