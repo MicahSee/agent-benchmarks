@@ -41,9 +41,11 @@
         {% set r = run.results %}
         <tr class="hover:bg-zinc-900 cursor-pointer" onclick="window.location='/dashboard/{{ run.run_id }}'">
           <td class="px-4 py-3 text-sm text-zinc-500 whitespace-nowrap">{{ run.timestamp[:19] | replace('T', ' ') }}</td>
-          <td class="px-4 py-3 text-sm text-zinc-200 max-w-xs">
-            <div class="truncate" title="{{ r.get('goal', run.title or '') }}">{{ r.get('goal', run.title or '—') }}</div>
-            <div class="text-xs text-zinc-600 mt-0.5">{{ r.get('task_name', run.benchmark or '') }}</div>
+          <td class="px-4 py-3 text-sm text-zinc-200 max-w-sm">
+            <div class="truncate" title="{{ r.get('goal', '') }}">{{ r.get('goal') or run.title or '—' }}</div>
+            {% if r.get('skill_id') or run.benchmark %}
+            <div class="text-xs text-zinc-600 mt-0.5">{{ r.get('skill_id', run.benchmark) }}</div>
+            {% endif %}
           </td>
           <td class="px-4 py-3 text-sm text-zinc-400">{{ run.deployment_name or '—' }}</td>
           <td class="px-4 py-3 text-sm text-zinc-500 max-w-[120px] truncate" title="{{ run.device or '' }}">{{ run.device or '—' }}</td>
