@@ -61,10 +61,12 @@
         <dt class="text-xs font-semibold uppercase tracking-wider text-zinc-600 mb-1">Device</dt>
         <dd class="text-sm text-zinc-300">{{ run.device or '—' }}</dd>
       </div>
+      {% if run.apk_version %}
       <div class="px-4 py-3">
         <dt class="text-xs font-semibold uppercase tracking-wider text-zinc-600 mb-1">APK Version</dt>
-        <dd class="font-mono text-xs text-zinc-400">{{ run.apk_version or '—' }}</dd>
+        <dd class="font-mono text-xs text-zinc-400">{{ run.apk_version }}</dd>
       </div>
+      {% endif %}
       {% if r.get('goal') %}
       <div class="px-4 py-3 col-span-2">
         <dt class="text-xs font-semibold uppercase tracking-wider text-zinc-600 mb-1">Goal</dt>
