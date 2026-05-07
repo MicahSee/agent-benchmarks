@@ -81,14 +81,14 @@
         <dt class="text-xs font-semibold uppercase tracking-wider text-zinc-600 mb-1">Run Time</dt>
         <dd class="text-sm text-zinc-300">{% if r.get('run_time_seconds') is not none %}{{ "%.1f"|format(r.get('run_time_seconds')) }}s{% else %}—{% endif %}</dd>
       </div>
+      {% if r.get('passed') is not none %}
       <div class="px-4 py-3">
         <dt class="text-xs font-semibold uppercase tracking-wider text-zinc-600 mb-1">Score</dt>
         <dd class="text-sm text-zinc-300">
-          {% if r.get('passed') is not none %}
-            <span class="text-green-400 font-semibold">{{ r.get('passed') }}</span> / {{ r.get('tasks_total', r.get('passed', 0) + r.get('failed', 0)) }} passed
-          {% else %}—{% endif %}
+          <span class="text-green-400 font-semibold">{{ r.get('passed') }}</span> / {{ r.get('tasks_total', r.get('passed', 0) + r.get('failed', 0)) }} passed
         </dd>
       </div>
+      {% endif %}
       {% if r.get('steps_taken') is not none %}
       <div class="px-4 py-3 border-r border-zinc-800">
         <dt class="text-xs font-semibold uppercase tracking-wider text-zinc-600 mb-1">Steps</dt>
