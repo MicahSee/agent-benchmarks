@@ -59,24 +59,45 @@ def logout():
     return resp
 
 
+def _query_runs(table, run_type: str, user: str | None = None, tab: str = "all") -> list:
+    if tab == "mine" and user:
+        result = table.query(
+            IndexName="user_id-timestamp-index",
+            KeyConditionExpression=Key("user_id").eq(user),
+            ScanIndexForward=False,
+            Limit=100,
+        )
+        items = [i for i in result["Items"] if i.get("run_type", "benchmark") == run_type]
+    else:
+        result = table.query(
+            IndexName="run_type-timestamp-index",
+            KeyConditionExpression=Key("run_type").eq(run_type),
+            ScanIndexForward=False,
+            Limit=50,
+        )
+        items = result["Items"]
+    return [_clean(i) for i in sorted(items, key=lambda r: r["timestamp"], reverse=True)]
+
+
 @router.get("/dashboard", response_class=HTMLResponse)
 def dashboard(request: Request, tab: str = "all"):
     user = get_session_user(request)
     if not user:
         return RedirectResponse("/login")
-    table = get_table()
-    if tab == "mine":
-        result = table.query(
-            IndexName="user_id-timestamp-index",
-            KeyConditionExpression=Key("user_id").eq(user),
-            ScanIndexForward=False,
-            Limit=50,
-        )
-    else:
-        result = table.scan(Limit=50)
-    runs = [_clean(item) for item in sorted(result["Items"], key=lambda r: r["timestamp"], reverse=True)]
+    runs = _query_runs(get_table(), "benchmark", user, tab)
     return templates.TemplateResponse(request, "dashboard.html", {
         "user": user, "runs": runs, "tab": tab, "active": "dashboard",
+    })
+
+
+@router.get("/telemetry", response_class=HTMLResponse)
+def telemetry(request: Request, tab: str = "all"):
+    user = get_session_user(request)
+    if not user:
+        return RedirectResponse("/login")
+    runs = _query_runs(get_table(), "telemetry", user, tab)
+    return templates.TemplateResponse(request, "telemetry.html", {
+        "user": user, "runs": runs, "tab": tab, "active": "telemetry",
     })
 
 

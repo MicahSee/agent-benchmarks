@@ -4,6 +4,7 @@ from typing import Any
 
 class RunCreate(BaseModel):
     benchmark: str
+    run_type: str = "benchmark"  # "benchmark" | "telemetry"
     title: str | None = None
     device: str | None = None
     apk_version: str | None = None

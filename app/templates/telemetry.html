@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}Telemetry — Agent Benchmarks{% endblock %}
+{% block content %}
+<div class="p-8">
+  <!-- Page header -->
+  <div class="border-b border-zinc-800 pb-4 mb-6">
+    <h2 class="text-lg font-semibold text-zinc-100">Telemetry</h2>
+    <p class="text-xs text-zinc-600 mt-1">Production runs from deployed droidrun agents</p>
+  </div>
+
+  <!-- Tabs -->
+  <div class="flex border-b border-zinc-800 mb-6">
+    <a href="/telemetry?tab=all"
+      class="px-4 py-2.5 text-sm font-medium border-b-2 {% if tab == 'all' %}border-amber-500 text-zinc-100{% else %}border-transparent text-zinc-500 hover:text-zinc-300{% endif %}">
+      All Runs
+    </a>
+    <a href="/telemetry?tab=mine"
+      class="px-4 py-2.5 text-sm font-medium border-b-2 {% if tab == 'mine' %}border-amber-500 text-zinc-100{% else %}border-transparent text-zinc-500 hover:text-zinc-300{% endif %}">
+      My Runs
+    </a>
+  </div>
+
+  <!-- Table -->
+  <div class="border border-zinc-800 overflow-x-auto">
+    <table class="min-w-full divide-y divide-zinc-800">
+      <thead>
+        <tr class="bg-zinc-900">
+          <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">Time</th>
+          <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">Goal</th>
+          <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">Deployment</th>
+          <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">Device</th>
+          <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">Result</th>
+          <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">Duration</th>
+          <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">Steps</th>
+          <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">Tokens</th>
+          <th class="px-4 py-3"></th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-zinc-800 bg-zinc-950">
+        {% for run in runs %}
+        {% set r = run.results %}
+        <tr class="hover:bg-zinc-900 cursor-pointer" onclick="window.location='/dashboard/{{ run.run_id }}'">
+          <td class="px-4 py-3 text-sm text-zinc-500 whitespace-nowrap">{{ run.timestamp[:19] | replace('T', ' ') }}</td>
+          <td class="px-4 py-3 text-sm text-zinc-200 max-w-xs">
+            <div class="truncate" title="{{ r.get('goal', run.title or '') }}">{{ r.get('goal', run.title or '—') }}</div>
+            <div class="text-xs text-zinc-600 mt-0.5">{{ r.get('task_name', run.benchmark or '') }}</div>
+          </td>
+          <td class="px-4 py-3 text-sm text-zinc-400">{{ run.deployment_name or '—' }}</td>
+          <td class="px-4 py-3 text-sm text-zinc-500 max-w-[120px] truncate" title="{{ run.device or '' }}">{{ run.device or '—' }}</td>
+          <td class="px-4 py-3 text-sm">
+            {% if r.get('all_success') %}
+              <span class="text-xs font-semibold uppercase tracking-wide text-green-400">Success</span>
+            {% elif r.get('error') %}
+              <span class="text-xs font-semibold uppercase tracking-wide text-red-500">Error</span>
+            {% elif r.get('completed') %}
+              <span class="text-xs font-semibold uppercase tracking-wide text-zinc-400">Done</span>
+            {% else %}
+              <span class="text-zinc-700">—</span>
+            {% endif %}
+          </td>
+          <td class="px-4 py-3 text-sm text-zinc-500 whitespace-nowrap">
+            {% if r.get('run_time_seconds') is not none %}{{ "%.0f"|format(r.get('run_time_seconds')) }}s{% else %}—{% endif %}
+          </td>
+          <td class="px-4 py-3 text-sm text-zinc-500">
+            {{ r.get('steps_taken', '—') }}
+          </td>
+          <td class="px-4 py-3 text-sm text-zinc-500 whitespace-nowrap">
+            {% if r.get('total_tokens') is not none %}{{ "{:,}".format(r.get('total_tokens')) }}{% else %}—{% endif %}
+          </td>
+          <td class="px-4 py-3 text-right text-sm whitespace-nowrap">
+            <a href="/dashboard/{{ run.run_id }}" class="text-amber-500 hover:text-amber-400 text-xs font-semibold uppercase tracking-wide" onclick="event.stopPropagation()">View →</a>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="9" class="px-4 py-12 text-center text-sm text-zinc-700">No telemetry runs yet. Set <code class="text-zinc-500">BENCHMARKS_API_KEY</code> in a deployment to start capturing.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
