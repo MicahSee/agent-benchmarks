@@ -49,12 +49,6 @@ def _upload_log(run_id: str, log: str | dict) -> str | None:
         return None
 
 
-@router.get("/me")
-def get_me(user_id: str = Depends(require_api_key)):
-    """Return the user associated with the provided API key."""
-    return {"user_id": user_id}
-
-
 @router.post("/", response_model=Run, status_code=201)
 def create_run(run: RunCreate, user_id: str = Depends(require_api_key)):
     table = get_table()
@@ -67,6 +61,8 @@ def create_run(run: RunCreate, user_id: str = Depends(require_api_key)):
             parts.append(data["device"])
         parts.append(datetime.now(timezone.utc).strftime("%Y-%m-%d"))
         data["title"] = " · ".join(parts)
+    if not data.get("deployment_name"):
+        data["deployment_name"] = f"{user_id} local"
     item = {
         "run_id": str(uuid.uuid4()),
         "timestamp": datetime.now(timezone.utc).isoformat(),
