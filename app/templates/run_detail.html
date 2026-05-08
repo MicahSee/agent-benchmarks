@@ -18,7 +18,7 @@
       {% elif r.get('error') %}
         <span class="text-xs font-semibold uppercase tracking-wide text-red-500">Error</span>
       {% elif r.get('completed') %}
-        <span class="text-xs font-semibold uppercase tracking-wide text-zinc-500">Completed</span>
+        <span class="text-xs font-semibold uppercase tracking-wide text-red-500">Failed</span>
       {% endif %}
       <button onclick="showRename()" class="text-xs text-zinc-600 hover:text-zinc-400 ml-auto border border-zinc-800 px-2 py-1 hover:border-zinc-600">Rename</button>
     </div>
