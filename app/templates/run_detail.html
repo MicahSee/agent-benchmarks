@@ -46,85 +46,87 @@
     </script>
   </div>
 
-  <!-- Metadata grid -->
+  <!-- Metadata table -->
   <div class="border border-zinc-800 mb-5">
-    <div class="grid grid-cols-2 divide-y divide-zinc-800">
-      <div class="px-4 py-3 border-r border-zinc-800">
-        <dt class="text-xs font-semibold uppercase tracking-wider text-zinc-600 mb-1">Run ID</dt>
-        <dd class="font-mono text-xs text-zinc-400">{{ run.run_id }}</dd>
-      </div>
-      <div class="px-4 py-3">
-        <dt class="text-xs font-semibold uppercase tracking-wider text-zinc-600 mb-1">Timestamp</dt>
-        <dd class="text-sm text-zinc-300">{{ run.timestamp[:19] | replace('T', ' ') }} UTC</dd>
-      </div>
-      <div class="px-4 py-3 border-r border-zinc-800">
-        <dt class="text-xs font-semibold uppercase tracking-wider text-zinc-600 mb-1">Device</dt>
-        <dd class="text-sm text-zinc-300">{{ run.device or '—' }}</dd>
-      </div>
-      {% if run.apk_version %}
-      <div class="px-4 py-3">
-        <dt class="text-xs font-semibold uppercase tracking-wider text-zinc-600 mb-1">APK Version</dt>
-        <dd class="font-mono text-xs text-zinc-400">{{ run.apk_version }}</dd>
-      </div>
-      {% endif %}
-      {% if r.get('goal') %}
-      <div class="px-4 py-3 col-span-2">
-        <dt class="text-xs font-semibold uppercase tracking-wider text-zinc-600 mb-1">Goal</dt>
-        <dd class="text-sm text-zinc-300">{{ r.get('goal') }}</dd>
-      </div>
-      {% endif %}
-      {% if run.deployment_name %}
-      <div class="px-4 py-3 border-r border-zinc-800">
-        <dt class="text-xs font-semibold uppercase tracking-wider text-zinc-600 mb-1">Deployment</dt>
-        <dd class="text-sm text-zinc-300">{{ run.deployment_name }}</dd>
-      </div>
-      {% endif %}
-      <div class="px-4 py-3 border-r border-zinc-800">
-        <dt class="text-xs font-semibold uppercase tracking-wider text-zinc-600 mb-1">Run Time</dt>
-        <dd class="text-sm text-zinc-300">{% if r.get('run_time_seconds') is not none %}{{ "%.1f"|format(r.get('run_time_seconds')) }}s{% else %}—{% endif %}</dd>
-      </div>
-      {% if r.get('passed') is not none %}
-      <div class="px-4 py-3">
-        <dt class="text-xs font-semibold uppercase tracking-wider text-zinc-600 mb-1">Score</dt>
-        <dd class="text-sm text-zinc-300">
-          <span class="text-green-400 font-semibold">{{ r.get('passed') }}</span> / {{ r.get('tasks_total', r.get('passed', 0) + r.get('failed', 0)) }} passed
-        </dd>
-      </div>
-      {% endif %}
-      {% if r.get('steps_taken') is not none %}
-      <div class="px-4 py-3 border-r border-zinc-800">
-        <dt class="text-xs font-semibold uppercase tracking-wider text-zinc-600 mb-1">Steps</dt>
-        <dd class="text-sm text-zinc-300">{{ r.get('steps_taken') }}</dd>
-      </div>
-      {% endif %}
-      {% if r.get('vision_locate_calls') is not none %}
-      <div class="px-4 py-3 border-r border-zinc-800">
-        <dt class="text-xs font-semibold uppercase tracking-wider text-zinc-600 mb-1">Vision Calls</dt>
-        <dd class="text-sm text-zinc-300">{{ r.get('vision_locate_calls') }}</dd>
-      </div>
-      {% endif %}
-      {% if r.get('total_tokens') is not none %}
-      <div class="px-4 py-3 {% if r.get('steps_taken') is not none %}{% else %}border-r border-zinc-800{% endif %}">
-        <dt class="text-xs font-semibold uppercase tracking-wider text-zinc-600 mb-1">Tokens</dt>
-        <dd class="text-sm text-zinc-300">
-          {{ "{:,}".format(r.get('total_tokens')) }}
-          {% if r.get('tokens_per_agent') %}
-          <div class="mt-1 space-y-0.5">
-            {% for agent, tok in r.get('tokens_per_agent').items() | sort(attribute='1', reverse=True) %}
-            <div class="text-xs text-zinc-600">{{ agent }}: {{ "{:,}".format(tok) }}</div>
-            {% endfor %}
-          </div>
-          {% endif %}
-        </dd>
-      </div>
-      {% endif %}
-      {% if r.get('runner_version') %}
-      <div class="px-4 py-3 border-r border-zinc-800 border-t border-zinc-800">
-        <dt class="text-xs font-semibold uppercase tracking-wider text-zinc-600 mb-1">Droidrun Version</dt>
-        <dd class="font-mono text-xs text-zinc-400">{{ r.get('runner_version') }} ({{ r.get('runner_branch', '—') }})</dd>
-      </div>
-      {% endif %}
-    </div>
+    <table class="min-w-full divide-y divide-zinc-800">
+      <tbody class="divide-y divide-zinc-800">
+        <tr>
+          <td class="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-zinc-600 w-40">Run ID</td>
+          <td class="px-4 py-3 font-mono text-xs text-zinc-400">{{ run.run_id }}</td>
+        </tr>
+        <tr>
+          <td class="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-zinc-600">Timestamp</td>
+          <td class="px-4 py-3 text-sm text-zinc-300">{{ run.timestamp[:19] | replace('T', ' ') }} UTC</td>
+        </tr>
+        {% if r.get('goal') %}
+        <tr>
+          <td class="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-zinc-600">Goal</td>
+          <td class="px-4 py-3 text-sm text-zinc-300">{{ r.get('goal') }}</td>
+        </tr>
+        {% endif %}
+        <tr>
+          <td class="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-zinc-600">Device</td>
+          <td class="px-4 py-3 text-sm text-zinc-300">{{ run.device or '—' }}</td>
+        </tr>
+        {% if run.deployment_name %}
+        <tr>
+          <td class="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-zinc-600">Deployment</td>
+          <td class="px-4 py-3 text-sm text-zinc-300">{{ run.deployment_name }}</td>
+        </tr>
+        {% endif %}
+        {% if run.apk_version %}
+        <tr>
+          <td class="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-zinc-600">APK Version</td>
+          <td class="px-4 py-3 font-mono text-xs text-zinc-400">{{ run.apk_version }}</td>
+        </tr>
+        {% endif %}
+        <tr>
+          <td class="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-zinc-600">Run Time</td>
+          <td class="px-4 py-3 text-sm text-zinc-300">{% if r.get('run_time_seconds') is not none %}{{ "%.1f"|format(r.get('run_time_seconds')) }}s{% else %}—{% endif %}</td>
+        </tr>
+        {% if r.get('steps_taken') is not none %}
+        <tr>
+          <td class="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-zinc-600">Steps</td>
+          <td class="px-4 py-3 text-sm text-zinc-300">{{ r.get('steps_taken') }}</td>
+        </tr>
+        {% endif %}
+        {% if r.get('vision_locate_calls') is not none %}
+        <tr>
+          <td class="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-zinc-600">Vision Calls</td>
+          <td class="px-4 py-3 text-sm text-zinc-300">{{ r.get('vision_locate_calls') }}</td>
+        </tr>
+        {% endif %}
+        {% if r.get('total_tokens') is not none %}
+        <tr>
+          <td class="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-zinc-600">Tokens</td>
+          <td class="px-4 py-3 text-sm text-zinc-300">
+            {{ "{:,}".format(r.get('total_tokens') | int) }}
+            {% if r.get('tokens_per_agent') %}
+            <div class="mt-1 space-y-0.5">
+              {% for agent, tok in r.get('tokens_per_agent').items() | sort(attribute='1', reverse=True) %}
+              <div class="text-xs text-zinc-600">{{ agent }}: {{ "{:,}".format(tok | int) }}</div>
+              {% endfor %}
+            </div>
+            {% endif %}
+          </td>
+        </tr>
+        {% endif %}
+        {% if r.get('passed') is not none %}
+        <tr>
+          <td class="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-zinc-600">Score</td>
+          <td class="px-4 py-3 text-sm text-zinc-300">
+            <span class="text-green-400 font-semibold">{{ r.get('passed') }}</span> / {{ r.get('tasks_total', r.get('passed', 0) + r.get('failed', 0)) }} passed
+          </td>
+        </tr>
+        {% endif %}
+        {% if r.get('runner_version') %}
+        <tr>
+          <td class="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-zinc-600">Droidrun Version</td>
+          <td class="px-4 py-3 font-mono text-xs text-zinc-400">{{ r.get('runner_version') }} ({{ r.get('runner_branch', '—') }})</td>
+        </tr>
+        {% endif %}
+      </tbody>
+    </table>
   </div>
 
   <!-- Step timeline -->
