@@ -146,11 +146,23 @@
       {% for s in r.get('step_details') %}
       {% set dur = s.duration_seconds | float %}
       {% set tok = s.tokens | int %}
-      <div class="px-4 py-4">
+      {# Determine if this step failed: bundled=any executor failed, single=success field #}
+      {% set step_failed = false %}
+      {% if s.agent_type == 'bundled' and s.agents %}
+        {% for a in s.agents %}{% if a.agent_type != 'manager' and a.get('success') == false %}{% set step_failed = true %}{% endif %}{% endfor %}
+      {% elif s.get('success') == false %}
+        {% set step_failed = true %}
+      {% endif %}
+      <div class="px-4 py-4 {% if step_failed %}bg-red-950 bg-opacity-30{% endif %}">
         <!-- Step header -->
         <div class="flex items-center justify-between mb-2">
           <div class="flex items-center gap-2">
-            <span class="text-xs font-mono font-bold text-zinc-600">{{ "%02d"|format(s.step) }}</span>
+            <span class="text-xs font-mono font-bold {% if step_failed %}text-red-500{% else %}text-zinc-600{% endif %}">{{ "%02d"|format(s.step) }}</span>
+            {% if step_failed %}
+              <span class="text-xs font-semibold text-red-500">✗ failed</span>
+            {% else %}
+              <span class="text-xs text-zinc-700">✓</span>
+            {% endif %}
             {% if s.agent_type != 'bundled' %}
             <span class="text-xs uppercase tracking-wider text-zinc-600">{{ s.agent_type }}</span>
             {% endif %}
@@ -163,12 +175,13 @@
         <!-- Bundled (manager+executor) -->
         {% if s.agent_type == 'bundled' and s.agents %}
           {% for a in s.agents %}
-          <div class="mt-2 pl-3 border-l-2 {% if a.agent_type == 'manager' %}border-zinc-700{% else %}border-amber-900{% endif %}">
+          {% set agent_failed = a.agent_type != 'manager' and a.get('success') == false %}
+          <div class="mt-2 pl-3 border-l-2 {% if agent_failed %}border-red-800{% elif a.agent_type == 'manager' %}border-zinc-700{% else %}border-zinc-600{% endif %}">
             <div class="flex items-center gap-2">
-              <span class="text-xs font-semibold uppercase tracking-wider {% if a.agent_type == 'manager' %}text-zinc-500{% else %}text-amber-600{% endif %}">{{ a.agent_type }}</span>
+              <span class="text-xs font-semibold uppercase tracking-wider {% if agent_failed %}text-red-500{% elif a.agent_type == 'manager' %}text-zinc-500{% else %}text-zinc-400{% endif %}">{{ a.agent_type }}</span>
               {% if a.agent_type != 'manager' %}
-                {% if a.get('success') == false %}
-                  <span class="text-xs font-semibold text-red-500">✗ failed</span>
+                {% if agent_failed %}
+                  <span class="text-xs text-red-600">✗</span>
                 {% else %}
                   <span class="text-xs text-zinc-700">✓</span>
                 {% endif %}
@@ -176,14 +189,14 @@
             </div>
             {% if a.thought %}<p class="text-xs text-zinc-400 mt-1 leading-relaxed">{{ a.thought[:250] }}{% if a.thought | length > 250 %}…{% endif %}</p>{% endif %}
             {% if a.code %}<code class="text-xs text-zinc-500 font-mono block mt-1 bg-zinc-900 px-2 py-1">{{ a.code[:150] }}{% if a.code | length > 150 %}…{% endif %}</code>{% endif %}
-            {% if a.result %}<p class="text-xs {% if a.get('success') == false %}text-red-600{% else %}text-zinc-600{% endif %} mt-1">→ {{ a.result[:150] }}{% if a.result | length > 150 %}…{% endif %}</p>{% endif %}
+            {% if a.result %}<p class="text-xs {% if agent_failed %}text-red-600{% else %}text-zinc-600{% endif %} mt-1">→ {{ a.result[:150] }}{% if a.result | length > 150 %}…{% endif %}</p>{% endif %}
           </div>
           {% endfor %}
         <!-- Single agent (codeact) -->
         {% else %}
           {% if s.thought %}<p class="text-xs text-zinc-400 leading-relaxed">{{ s.thought[:250] }}{% if s.thought | length > 250 %}…{% endif %}</p>{% endif %}
           {% if s.code %}<code class="text-xs text-zinc-500 font-mono block mt-1.5 bg-zinc-900 px-2 py-1">{{ s.code[:150] }}{% if s.code | length > 150 %}…{% endif %}</code>{% endif %}
-          {% if s.result %}<p class="text-xs text-zinc-600 mt-1.5">→ {{ s.result[:200] }}{% if s.result | length > 200 %}…{% endif %}</p>{% endif %}
+          {% if s.result %}<p class="text-xs {% if step_failed %}text-red-600{% else %}text-zinc-600{% endif %} mt-1.5">→ {{ s.result[:200] }}{% if s.result | length > 200 %}…{% endif %}</p>{% endif %}
         {% endif %}
       </div>
       {% endfor %}
