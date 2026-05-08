@@ -33,6 +33,7 @@
           <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">Duration</th>
           <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">Steps</th>
           <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">Tokens</th>
+          <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">Droidrun Version</th>
           <th class="px-4 py-3"></th>
         </tr>
       </thead>
@@ -69,13 +70,16 @@
           <td class="px-4 py-3 text-sm text-zinc-500 whitespace-nowrap">
             {% if r.get('total_tokens') is not none %}{{ "{:,}".format(r.get('total_tokens')) }}{% else %}—{% endif %}
           </td>
+          <td class="px-4 py-3 text-xs font-mono text-zinc-500 whitespace-nowrap">
+            {{ r.get('runner_version', '—') }}
+          </td>
           <td class="px-4 py-3 text-right text-sm whitespace-nowrap">
             <a href="/dashboard/{{ run.run_id }}" class="text-amber-500 hover:text-amber-400 text-xs font-semibold uppercase tracking-wide" onclick="event.stopPropagation()">View →</a>
           </td>
         </tr>
         {% else %}
         <tr>
-          <td colspan="9" class="px-4 py-12 text-center text-sm text-zinc-700">No telemetry runs yet. Set <code class="text-zinc-500">BENCHMARKS_API_KEY</code> in a deployment to start capturing.</td>
+          <td colspan="10" class="px-4 py-12 text-center text-sm text-zinc-700">No telemetry runs yet. Set <code class="text-zinc-500">BENCHMARKS_API_KEY</code> in a deployment to start capturing.</td>
         </tr>
         {% endfor %}
       </tbody>
