@@ -16,4 +16,5 @@ class Run(RunCreate):
     run_id: str
     timestamp: str
     user_id: str | None = None
-    log_url: str | None = None
+    log_url: str | None = None   # legacy — may contain old presigned URLs
+    log_key: str | None = None   # S3 key for fresh presigned URL generation

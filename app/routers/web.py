@@ -110,8 +110,13 @@ def run_detail(request: Request, run_id: str):
     item = resp.get("Item")
     if not item:
         return RedirectResponse("/dashboard")
+    run = _clean(item)
+    # Generate a fresh presigned URL if we have the S3 key
+    if run.get("log_key"):
+        from app.routers.runs import _fresh_presigned_url
+        run["log_url"] = _fresh_presigned_url(run["log_key"], expires=3600)
     return templates.TemplateResponse(request, "run_detail.html", {
-        "user": user, "run": _clean(item), "active": "dashboard",
+        "user": user, "run": run, "active": "dashboard",
     })
 
 
@@ -212,12 +217,21 @@ async def analyze_run(request: Request, run_id: str):
 
     resp = get_table().get_item(Key={"run_id": run_id})
     item = resp.get("Item")
-    if not item or not item.get("log_url"):
+    if not item or not (item.get("log_key") or item.get("log_url")):
         return RedirectResponse(f"/dashboard/{run_id}")
 
     try:
-        with urllib.request.urlopen(item["log_url"], timeout=30) as r:
-            log_content = r.read().decode()
+        log_key = item.get("log_key")
+        if log_key:
+            # Read directly from S3 — no presigned URL expiry issues
+            import boto3 as _boto3
+            s3 = _boto3.client("s3", region_name=os.environ.get("AWS_REGION", "us-east-1"))
+            obj = s3.get_object(Bucket="aslan-benchmark-logs", Key=log_key)
+            log_content = obj["Body"].read().decode()
+        else:
+            # Legacy: presigned URL (may be expired)
+            with urllib.request.urlopen(item["log_url"], timeout=30) as r:
+                log_content = r.read().decode()
     except Exception:
         return RedirectResponse(f"/dashboard/{run_id}")
 

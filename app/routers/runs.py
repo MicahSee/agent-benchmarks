@@ -29,6 +29,7 @@ def _to_decimal(obj):
 
 
 def _upload_log(run_id: str, log: str | dict) -> str | None:
+    """Upload log to S3 and return the S3 key (not a presigned URL)."""
     try:
         s3 = boto3.client("s3", region_name=os.environ.get("AWS_REGION", "us-east-1"))
         if isinstance(log, str):
@@ -40,10 +41,19 @@ def _upload_log(run_id: str, log: str | dict) -> str | None:
             content_type = "application/json"
             key = f"gauntlet/{run_id}/log.json"
         s3.put_object(Bucket=LOG_BUCKET, Key=key, Body=body, ContentType=content_type)
+        return key  # Store the key, generate fresh presigned URL on demand
+    except Exception:
+        return None
+
+
+def _fresh_presigned_url(key: str, expires: int = 3600) -> str | None:
+    """Generate a fresh presigned URL for an S3 key (valid for expires seconds)."""
+    try:
+        s3 = boto3.client("s3", region_name=os.environ.get("AWS_REGION", "us-east-1"))
         return s3.generate_presigned_url(
             "get_object",
             Params={"Bucket": LOG_BUCKET, "Key": key},
-            ExpiresIn=86400 * 30,
+            ExpiresIn=expires,
         )
     except Exception:
         return None
@@ -107,9 +117,9 @@ def patch_run(run_id: str, fields: dict[str, Any], _: str = Depends(require_api_
 
     # If the patch includes a full log, upload to S3 and replace with URL
     if "log" in fields:
-        log_url = _upload_log(run_id, fields.pop("log"))
-        if log_url:
-            fields["log_url"] = log_url
+        log_key = _upload_log(run_id, fields.pop("log"))
+        if log_key:
+            fields["log_key"] = log_key
 
     if not fields:
         return table.get_item(Key={"run_id": run_id})["Item"]
