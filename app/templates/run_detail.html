@@ -119,6 +119,16 @@
           </td>
         </tr>
         {% endif %}
+        {% if r.get('checker_disagreed') %}
+        <tr class="bg-amber-950">
+          <td class="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-amber-500">⚠ Checker Disagreed</td>
+          <td class="px-4 py-3 text-sm text-amber-400">
+            Agent reported <strong>{{ 'success' if r.get('agent_self_success') else 'failure' }}</strong>
+            — Task Checker overrode to <strong>{{ 'success' if r.get('all_success') else 'failure' }}</strong>
+            {% if r.get('checker_confidence') is not none %} (confidence: {{ "%.0f"|format(r.get('checker_confidence') | float * 100) }}%){% endif %}
+          </td>
+        </tr>
+        {% endif %}
         {% if r.get('max_consecutive_failures') %}
         <tr>
           <td class="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-zinc-600">Max Failure Streak</td>
