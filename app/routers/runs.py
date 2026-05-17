@@ -1,3 +1,4 @@
+import base64
 import json
 import os
 import uuid
@@ -134,3 +135,38 @@ def patch_run(run_id: str, fields: dict[str, Any], _: str = Depends(require_api_
         ExpressionAttributeValues=_to_decimal(values),
     )
     return table.get_item(Key={"run_id": run_id})["Item"]
+
+
+@router.post("/{run_id}/screenshots")
+def upload_screenshots(run_id: str, body: dict[str, Any], _: str = Depends(require_api_key)):
+    """Upload per-step screenshots for a failed run.
+
+    Body: {"screenshots": {"0": "<base64_jpeg>", "1": "<base64_jpeg>", ...}}
+    Index N is the screenshot captured before step N+1 (what the agent saw).
+    Uploads each to S3 and stores screenshot_keys on the run record.
+    """
+    screenshots = body.get("screenshots", {})
+    if not screenshots:
+        raise HTTPException(status_code=400, detail="No screenshots provided")
+
+    s3 = boto3.client("s3", region_name=os.environ.get("AWS_REGION", "us-east-1"))
+    screenshot_keys: dict[str, str] = {}
+
+    for idx, b64_data in screenshots.items():
+        try:
+            data = base64.b64decode(b64_data)
+            key = f"screenshots/{run_id}/{idx}.jpg"
+            s3.put_object(Bucket=LOG_BUCKET, Key=key, Body=data, ContentType="image/jpeg")
+            screenshot_keys[idx] = key
+        except Exception:
+            continue
+
+    if screenshot_keys:
+        get_table().update_item(
+            Key={"run_id": run_id},
+            UpdateExpression="SET #sk = :sk",
+            ExpressionAttributeNames={"#sk": "screenshot_keys"},
+            ExpressionAttributeValues={":sk": screenshot_keys},
+        )
+
+    return {"screenshot_keys": screenshot_keys}

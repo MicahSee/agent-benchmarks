@@ -198,6 +198,15 @@
             <span class="text-zinc-700">{{ "{:,}".format(tok) }} tok</span>
           </div>
         </div>
+        <!-- Screenshot: what the agent saw before this step -->
+        {% set shot_url = screenshot_urls.get((s.step - 1) | string) %}
+        {% if shot_url %}
+        <div class="mb-2">
+          <a href="{{ shot_url }}" target="_blank" title="Screen state before this step">
+            <img src="{{ shot_url }}" class="max-h-32 border border-zinc-700 opacity-80 hover:opacity-100 transition-opacity" alt="Step {{ s.step }} screenshot">
+          </a>
+        </div>
+        {% endif %}
         <!-- Bundled (manager+executor) -->
         {% if s.agent_type == 'bundled' and s.agents %}
           {% for a in s.agents %}

@@ -111,12 +111,18 @@ def run_detail(request: Request, run_id: str):
     if not item:
         return RedirectResponse("/dashboard")
     run = _clean(item)
-    # Generate a fresh presigned URL if we have the S3 key
+    from app.routers.runs import _fresh_presigned_url
+    # Generate a fresh presigned URL for the CoT log
     if run.get("log_key"):
-        from app.routers.runs import _fresh_presigned_url
         run["log_url"] = _fresh_presigned_url(run["log_key"], expires=3600)
+    # Generate fresh presigned URLs for per-step screenshots
+    screenshot_urls: dict[str, str] = {}
+    for idx, key in (run.get("screenshot_keys") or {}).items():
+        url = _fresh_presigned_url(key, expires=3600)
+        if url:
+            screenshot_urls[str(idx)] = url
     return templates.TemplateResponse(request, "run_detail.html", {
-        "user": user, "run": run, "active": "dashboard",
+        "user": user, "run": run, "screenshot_urls": screenshot_urls, "active": "dashboard",
     })
 
 
