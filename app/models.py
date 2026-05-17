@@ -9,6 +9,8 @@ class RunCreate(BaseModel):
     device: str | None = None
     apk_version: str | None = None
     deployment_name: str | None = None
+    context_id: str | None = None
+    session_goal: str | None = None
     results: dict[str, Any]
 
 

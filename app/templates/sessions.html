@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Sessions — Agent Benchmarks{% endblock %}
+{% block content %}
+<div class="p-8">
+  <div class="border-b border-zinc-800 pb-4 mb-6">
+    <h2 class="text-lg font-semibold text-zinc-100">Sessions</h2>
+    <p class="text-xs text-zinc-600 mt-1">High-level tasks from Session Agent, each grouping multiple droidrun calls</p>
+  </div>
+
+  <div class="border border-zinc-800 overflow-x-auto">
+    <table class="min-w-full divide-y divide-zinc-800">
+      <thead>
+        <tr class="bg-zinc-900">
+          <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">Session ID</th>
+          <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">Goal</th>
+          <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">Last Run</th>
+          <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">Deployment</th>
+          <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">Device</th>
+          <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">Model</th>
+          <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">Runs</th>
+          <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">Succeeded</th>
+          <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">Tokens</th>
+          <th class="px-4 py-3"></th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-zinc-800 bg-zinc-950">
+        {% for s in sessions %}
+        <tr class="hover:bg-zinc-800/60 cursor-pointer" onclick="window.location='/session/{{ s.context_id }}'">
+          <td class="px-4 py-3 font-mono text-xs text-zinc-400">{{ s.context_id[:28] }}…</td>
+          <td class="px-4 py-3 text-sm text-zinc-200 max-w-xs">
+            {% if s.session_goal %}
+            <div class="truncate" title="{{ s.session_goal }}">{{ s.session_goal }}</div>
+            {% else %}<span class="text-zinc-600">—</span>{% endif %}
+          </td>
+          <td class="px-4 py-3 text-sm text-zinc-500 whitespace-nowrap">{{ s.last_ts[:19] | replace('T', ' ') }}</td>
+          <td class="px-4 py-3 text-sm text-zinc-400">{{ s.deployment_name }}</td>
+          <td class="px-4 py-3 text-sm text-zinc-500 max-w-[120px] truncate" title="{{ s.device }}">{{ s.device }}</td>
+          <td class="px-4 py-3 font-mono text-xs text-zinc-500">{{ s.llm_model }}</td>
+          <td class="px-4 py-3 text-sm text-zinc-300">{{ s.run_count }}</td>
+          <td class="px-4 py-3 text-sm">
+            {% if s.succeeded == s.run_count %}
+              <span class="text-green-400 font-semibold">{{ s.succeeded }} / {{ s.run_count }}</span>
+            {% elif s.succeeded == 0 %}
+              <span class="text-red-400 font-semibold">{{ s.succeeded }} / {{ s.run_count }}</span>
+            {% else %}
+              <span class="text-amber-400 font-semibold">{{ s.succeeded }}</span><span class="text-zinc-500"> / {{ s.run_count }}</span>
+            {% endif %}
+          </td>
+          <td class="px-4 py-3 text-sm text-zinc-500 whitespace-nowrap">
+            {{ "{:,}".format(s.total_tokens) if s.total_tokens else '—' }}
+          </td>
+          <td class="px-4 py-3 text-right">
+            <a href="/session/{{ s.context_id }}" class="text-amber-500 hover:text-amber-400 text-xs font-semibold uppercase tracking-wide" onclick="event.stopPropagation()">View →</a>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="10" class="px-4 py-12 text-center text-sm text-zinc-700">No sessions yet. Sessions appear when droidrun runs include a <code class="text-zinc-500">context_id</code>.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

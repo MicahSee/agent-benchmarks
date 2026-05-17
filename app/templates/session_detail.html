@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+{% block title %}Session — Agent Benchmarks{% endblock %}
+{% block content %}
+<div class="p-8">
+
+  <!-- Header -->
+  <div class="border-b border-zinc-800 pb-4 mb-6">
+    <div class="mb-2">
+      <a href="/sessions" class="text-xs text-zinc-600 hover:text-zinc-400">← Sessions</a>
+    </div>
+    {% if runs and runs[0].get('session_goal') %}
+    <h2 class="text-lg font-semibold text-zinc-100">{{ runs[0].session_goal }}</h2>
+    <p class="font-mono text-xs text-zinc-500 mt-1 break-all">{{ context_id }}</p>
+    {% else %}
+    <h2 class="text-lg font-semibold text-zinc-100">Session</h2>
+    <p class="font-mono text-xs text-zinc-500 mt-1 break-all">{{ context_id }}</p>
+    {% endif %}
+  </div>
+
+  {% set total = runs | length %}
+  {% set ns = namespace(succeeded=0, total_steps=0, total_tokens=0) %}
+  {% for run in runs %}
+    {% set r = run.get('results', {}) %}
+    {% if r.get('all_success') %}{% set ns.succeeded = ns.succeeded + 1 %}{% endif %}
+    {% set ns.total_steps = ns.total_steps + (r.get('steps_taken') | int) %}
+    {% set ns.total_tokens = ns.total_tokens + (r.get('total_tokens') | int) %}
+  {% endfor %}
+
+  {% if runs %}
+  {% set first = runs[0] %}
+  {% set last = runs[-1] %}
+  {% set fr = first.get('results', {}) %}
+
+  <!-- Metadata + summary two-column layout -->
+  <div class="grid grid-cols-2 gap-4 mb-6">
+
+    <!-- Session metadata -->
+    <div class="border border-zinc-800">
+      <div class="px-4 py-3 border-b border-zinc-800 bg-zinc-900">
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-zinc-500">Metadata</h3>
+      </div>
+      <table class="w-full">
+        <tbody class="divide-y divide-zinc-800">
+          <tr>
+            <td class="px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-zinc-600 w-36">Deployment</td>
+            <td class="px-4 py-2.5 text-sm text-zinc-300">{{ first.get('deployment_name') or '—' }}</td>
+          </tr>
+          <tr>
+            <td class="px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-zinc-600">Device</td>
+            <td class="px-4 py-2.5 text-sm text-zinc-300">{{ first.get('device') or '—' }}</td>
+          </tr>
+          {% if fr.get('llm_model') %}
+          <tr>
+            <td class="px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-zinc-600">LLM Model</td>
+            <td class="px-4 py-2.5 font-mono text-xs text-zinc-400">{{ fr.get('llm_model') }}{% if fr.get('llm_provider') %} <span class="text-zinc-600">({{ fr.get('llm_provider') }})</span>{% endif %}</td>
+          </tr>
+          {% endif %}
+          <tr>
+            <td class="px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-zinc-600">First Run</td>
+            <td class="px-4 py-2.5 text-sm text-zinc-400">{{ first.get('timestamp', '')[:19] | replace('T', ' ') }} UTC</td>
+          </tr>
+          <tr>
+            <td class="px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-zinc-600">Last Run</td>
+            <td class="px-4 py-2.5 text-sm text-zinc-400">{{ last.get('timestamp', '')[:19] | replace('T', ' ') }} UTC</td>
+          </tr>
+          {% if fr.get('runner_version') %}
+          <tr>
+            <td class="px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-zinc-600">Droidrun</td>
+            <td class="px-4 py-2.5 font-mono text-xs text-zinc-500">{{ fr.get('runner_version') }} ({{ fr.get('runner_branch', '—') }})</td>
+          </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Summary stats -->
+    <div class="border border-zinc-800">
+      <div class="px-4 py-3 border-b border-zinc-800 bg-zinc-900">
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-zinc-500">Summary</h3>
+      </div>
+      <table class="w-full">
+        <tbody class="divide-y divide-zinc-800">
+          <tr>
+            <td class="px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-zinc-600 w-36">Runs</td>
+            <td class="px-4 py-2.5 text-sm text-zinc-300">{{ total }}</td>
+          </tr>
+          <tr>
+            <td class="px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-zinc-600">Succeeded</td>
+            <td class="px-4 py-2.5 text-sm font-semibold {% if ns.succeeded == total %}text-green-400{% elif ns.succeeded == 0 %}text-red-400{% else %}text-amber-400{% endif %}">
+              {{ ns.succeeded }} / {{ total }}
+            </td>
+          </tr>
+          <tr>
+            <td class="px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-zinc-600">Total Steps</td>
+            <td class="px-4 py-2.5 text-sm text-zinc-300">{{ ns.total_steps }}</td>
+          </tr>
+          <tr>
+            <td class="px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-zinc-600">Total Tokens</td>
+            <td class="px-4 py-2.5 text-sm text-zinc-300">{{ "{:,}".format(ns.total_tokens) if ns.total_tokens else '—' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+  {% endif %}
+
+  <!-- Runs table -->
+  <div class="border border-zinc-800">
+    <div class="px-4 py-3 border-b border-zinc-800 bg-zinc-900 flex items-center justify-between">
+      <h3 class="text-xs font-semibold uppercase tracking-wider text-zinc-500">Runs</h3>
+      <span class="text-xs text-zinc-600">{{ total }} total</span>
+    </div>
+    <table class="min-w-full divide-y divide-zinc-800">
+      <thead>
+        <tr class="bg-zinc-900">
+          <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500 w-8">#</th>
+          <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">Time</th>
+          <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">Goal</th>
+          <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">Result</th>
+          <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">Duration</th>
+          <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">Steps</th>
+          <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">Tokens</th>
+          <th class="px-4 py-3"></th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-zinc-800 bg-zinc-950">
+        {% for run in runs %}
+        {% set r = run.get('results', {}) %}
+        <tr class="hover:bg-zinc-800/60 cursor-pointer" onclick="window.location='/dashboard/{{ run.run_id }}'">
+          <td class="px-4 py-3 text-sm text-zinc-600">{{ loop.index }}</td>
+          <td class="px-4 py-3 text-sm text-zinc-500 whitespace-nowrap">{{ run.timestamp[:19] | replace('T', ' ') }}</td>
+          <td class="px-4 py-3 text-sm text-zinc-200">
+            <div class="break-words">{{ r.get('goal') or run.get('title') or '—' }}</div>
+          </td>
+          <td class="px-4 py-3 text-sm">
+            {% if r.get('all_success') %}
+              <span class="text-xs font-semibold uppercase tracking-wide text-green-400">Success</span>
+            {% elif r.get('error') %}
+              <span class="text-xs font-semibold uppercase tracking-wide text-red-500">Failed</span>
+            {% elif r.get('completed') == false and r.get('completed') is not none %}
+              <span class="text-xs font-semibold uppercase tracking-wide text-zinc-500">Abandoned</span>
+            {% elif r.get('completed') %}
+              <span class="text-xs font-semibold uppercase tracking-wide text-red-500">Failed</span>
+            {% else %}
+              <span class="text-zinc-700">—</span>
+            {% endif %}
+          </td>
+          <td class="px-4 py-3 text-sm text-zinc-500 whitespace-nowrap">
+            {% if r.get('run_time_seconds') is not none %}{{ "%.0f"|format(r.get('run_time_seconds')) }}s{% else %}—{% endif %}
+          </td>
+          <td class="px-4 py-3 text-sm text-zinc-500">{{ r.get('steps_taken', '—') }}</td>
+          <td class="px-4 py-3 text-sm text-zinc-500 whitespace-nowrap">
+            {% if r.get('total_tokens') is not none %}{{ "{:,}".format(r.get('total_tokens') | int) }}{% else %}—{% endif %}
+          </td>
+          <td class="px-4 py-3 text-right">
+            <a href="/dashboard/{{ run.run_id }}" class="text-amber-500 hover:text-amber-400 text-xs font-semibold uppercase tracking-wide" onclick="event.stopPropagation()">View →</a>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="8" class="px-4 py-12 text-center text-sm text-zinc-700">No runs found for this session.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+</div>
+{% endblock %}

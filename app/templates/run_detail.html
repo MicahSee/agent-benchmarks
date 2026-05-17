@@ -76,6 +76,14 @@
           <td class="px-4 py-3 text-sm text-zinc-300">{{ run.deployment_name }}</td>
         </tr>
         {% endif %}
+        {% if run.context_id %}
+        <tr>
+          <td class="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-zinc-600">Session</td>
+          <td class="px-4 py-3 font-mono text-xs text-zinc-400">
+            <a href="/session/{{ run.context_id }}" class="text-amber-500 hover:text-amber-400">{{ run.context_id[:24] }}…</a>
+          </td>
+        </tr>
+        {% endif %}
         {% if run.apk_version %}
         <tr>
           <td class="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-zinc-600">APK Version</td>
@@ -141,6 +149,12 @@
         <tr>
           <td class="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-zinc-600">Droidrun Version</td>
           <td class="px-4 py-3 font-mono text-xs text-zinc-400">{{ r.get('runner_version') }} ({{ r.get('runner_branch', '—') }})</td>
+        </tr>
+        {% endif %}
+        {% if r.get('llm_model') %}
+        <tr>
+          <td class="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-zinc-600">LLM Model</td>
+          <td class="px-4 py-3 font-mono text-xs text-zinc-400">{{ r.get('llm_model') }}{% if r.get('llm_provider') %} <span class="text-zinc-600">({{ r.get('llm_provider') }})</span>{% endif %}</td>
         </tr>
         {% endif %}
       </tbody>
@@ -255,11 +269,30 @@
   </div>
   {% endif %}
 
-  <!-- Error -->
-  {% if r.get('error') %}
-  <div class="border-l-4 border-red-500 bg-red-950 px-4 py-3 mb-5">
-    <p class="text-xs font-semibold uppercase tracking-wide text-red-500 mb-1">Error</p>
-    <p class="text-sm text-red-400 font-mono">{{ r.get('error') }}</p>
+  <!-- Failures box -->
+  {% set failed_tasks = [] %}
+  {% for task_name, task in r.get('tasks', {}).items() %}
+    {% if not task.get('success') %}{% set _ = failed_tasks.append((task_name, task)) %}{% endif %}
+  {% endfor %}
+  {% if r.get('error') or failed_tasks %}
+  <div class="border border-red-900 mb-5">
+    <div class="px-4 py-3 border-b border-red-900 bg-red-950/40">
+      <h3 class="text-xs font-semibold uppercase tracking-wider text-red-500">Failures</h3>
+    </div>
+    <ul class="divide-y divide-red-900/40">
+      {% if r.get('error') %}
+      <li class="px-4 py-3">
+        <span class="text-xs font-semibold uppercase tracking-wide text-zinc-500 mr-2">Run error</span>
+        <span class="text-sm text-zinc-300 font-mono">{{ r.get('error') }}</span>
+      </li>
+      {% endif %}
+      {% for task_name, task in failed_tasks %}
+      <li class="px-4 py-3">
+        <span class="text-xs font-semibold uppercase tracking-wide text-zinc-500 mr-2">{{ task_name }}</span>
+        <span class="text-sm text-zinc-400">{{ task.get('details') or task.get('message') or 'No details' }}</span>
+      </li>
+      {% endfor %}
+    </ul>
   </div>
   {% endif %}
 

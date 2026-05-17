@@ -37,7 +37,7 @@
       <tbody class="divide-y divide-zinc-800 bg-zinc-950">
         {% for run in runs %}
         {% set r = run.results %}
-        <tr class="hover:bg-zinc-900 cursor-pointer" onclick="window.location='/dashboard/{{ run.run_id }}'">
+        <tr class="hover:bg-zinc-800/60 cursor-pointer" onclick="window.location='/dashboard/{{ run.run_id }}'">
           <td class="px-4 py-3 text-sm text-zinc-500 whitespace-nowrap">{{ run.timestamp[:19] | replace('T', ' ') }}</td>
           <td class="px-4 py-3 text-sm font-medium text-zinc-100">
             {{ run.title or run.benchmark }}

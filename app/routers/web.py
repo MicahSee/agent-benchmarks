@@ -120,6 +120,75 @@ def run_detail(request: Request, run_id: str):
     })
 
 
+@router.get("/sessions", response_class=HTMLResponse)
+def sessions_list(request: Request):
+    user = get_session_user(request)
+    if not user:
+        return RedirectResponse("/login")
+    from boto3.dynamodb.conditions import Attr
+    resp = get_table().scan(FilterExpression=Attr("context_id").exists())
+    runs_with_ctx = [_clean(i) for i in resp.get("Items", [])]
+
+    # Group by context_id, build one summary dict per session
+    groups: dict = {}
+    for run in runs_with_ctx:
+        cid = run.get("context_id")
+        if not cid:
+            continue
+        r = run.get("results", {})
+        if cid not in groups:
+            groups[cid] = {
+                "context_id": cid,
+                "session_goal": run.get("session_goal") or "",
+                "deployment_name": run.get("deployment_name") or "—",
+                "device": run.get("device") or "—",
+                "llm_model": r.get("llm_model") or "—",
+                "run_count": 0,
+                "succeeded": 0,
+                "total_tokens": 0,
+                "first_ts": run.get("timestamp", ""),
+                "last_ts": run.get("timestamp", ""),
+            }
+        g = groups[cid]
+        g["run_count"] += 1
+        if r.get("all_success"):
+            g["succeeded"] += 1
+        g["total_tokens"] += int(r.get("total_tokens") or 0)
+        ts = run.get("timestamp", "")
+        if ts < g["first_ts"]:
+            g["first_ts"] = ts
+        if ts > g["last_ts"]:
+            g["last_ts"] = ts
+
+    sessions = sorted(groups.values(), key=lambda s: s["last_ts"], reverse=True)
+    return templates.TemplateResponse(request, "sessions.html", {
+        "user": user, "sessions": sessions, "active": "sessions",
+    })
+
+
+@router.get("/session/{context_id}", response_class=HTMLResponse)
+def session_detail(request: Request, context_id: str):
+    user = get_session_user(request)
+    if not user:
+        return RedirectResponse("/login")
+    table = get_table()
+    try:
+        resp = table.query(
+            IndexName="context_id-timestamp-index",
+            KeyConditionExpression=Key("context_id").eq(context_id),
+            ScanIndexForward=True,
+        )
+        items = resp.get("Items", [])
+    except Exception:
+        from boto3.dynamodb.conditions import Attr
+        resp = table.scan(FilterExpression=Attr("context_id").eq(context_id))
+        items = sorted(resp.get("Items", []), key=lambda r: r.get("timestamp", ""))
+    runs = [_clean(i) for i in items]
+    return templates.TemplateResponse(request, "session_detail.html", {
+        "user": user, "context_id": context_id, "runs": runs, "active": "telemetry",
+    })
+
+
 @router.post("/dashboard/{run_id}/rename")
 async def rename_run(request: Request, run_id: str, title: str = Form(...)):
     user = get_session_user(request)

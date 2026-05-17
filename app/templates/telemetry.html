@@ -27,25 +27,27 @@
         <tr class="bg-zinc-900">
           <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">Time</th>
           <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">Goal</th>
+          <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">Session</th>
           <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">Deployment</th>
           <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">Device</th>
           <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">Result</th>
-          <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">Duration</th>
-          <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">Steps</th>
-          <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">Tokens</th>
           <th class="px-4 py-3"></th>
         </tr>
       </thead>
       <tbody class="divide-y divide-zinc-800 bg-zinc-950">
         {% for run in runs %}
         {% set r = run.results %}
-        <tr class="hover:bg-zinc-900 cursor-pointer" onclick="window.location='/dashboard/{{ run.run_id }}'">
+        <tr class="hover:bg-zinc-800/60 cursor-pointer" onclick="window.location='/dashboard/{{ run.run_id }}'">
           <td class="px-4 py-3 text-sm text-zinc-500 whitespace-nowrap">{{ run.timestamp[:19] | replace('T', ' ') }}</td>
           <td class="px-4 py-3 text-sm text-zinc-200 max-w-sm">
             <div class="truncate" title="{{ r.get('goal', '') }}">{{ r.get('goal') or run.title or '—' }}</div>
-            {% if r.get('skill_id') or run.benchmark %}
-            <div class="text-xs text-zinc-600 mt-0.5">{{ r.get('skill_id', run.benchmark) }}</div>
-            {% endif %}
+          </td>
+          <td class="px-4 py-3 text-sm">
+            {% if run.context_id %}
+            <a href="/session/{{ run.context_id }}" class="font-mono text-xs text-amber-500 hover:text-amber-400" title="{{ run.context_id }}" onclick="event.stopPropagation()">
+              {{ run.context_id[:16] }}…
+            </a>
+            {% else %}<span class="text-zinc-700">—</span>{% endif %}
           </td>
           <td class="px-4 py-3 text-sm text-zinc-400">{{ run.deployment_name or '—' }}</td>
           <td class="px-4 py-3 text-sm text-zinc-500 max-w-[120px] truncate" title="{{ run.device or '' }}">{{ run.device or '—' }}</td>
@@ -53,7 +55,7 @@
             {% if r.get('all_success') %}
               <span class="text-xs font-semibold uppercase tracking-wide text-green-400">Success</span>
             {% elif r.get('error') %}
-              <span class="text-xs font-semibold uppercase tracking-wide text-red-500">Error</span>
+              <span class="text-xs font-semibold uppercase tracking-wide text-red-500">Failed</span>
             {% elif r.get('completed') == false and r.get('completed') is not none %}
               <span class="text-xs font-semibold uppercase tracking-wide text-zinc-500">Abandoned</span>
             {% elif r.get('completed') %}
@@ -62,22 +64,13 @@
               <span class="text-zinc-700">—</span>
             {% endif %}
           </td>
-          <td class="px-4 py-3 text-sm text-zinc-500 whitespace-nowrap">
-            {% if r.get('run_time_seconds') is not none %}{{ "%.0f"|format(r.get('run_time_seconds')) }}s{% else %}—{% endif %}
-          </td>
-          <td class="px-4 py-3 text-sm text-zinc-500">
-            {{ r.get('steps_taken', '—') }}
-          </td>
-          <td class="px-4 py-3 text-sm text-zinc-500 whitespace-nowrap">
-            {% if r.get('total_tokens') is not none %}{{ "{:,}".format(r.get('total_tokens')) }}{% else %}—{% endif %}
-          </td>
           <td class="px-4 py-3 text-right text-sm whitespace-nowrap">
             <a href="/dashboard/{{ run.run_id }}" class="text-amber-500 hover:text-amber-400 text-xs font-semibold uppercase tracking-wide" onclick="event.stopPropagation()">View →</a>
           </td>
         </tr>
         {% else %}
         <tr>
-          <td colspan="9" class="px-4 py-12 text-center text-sm text-zinc-700">No telemetry runs yet. Set <code class="text-zinc-500">BENCHMARKS_API_KEY</code> in a deployment to start capturing.</td>
+          <td colspan="7" class="px-4 py-12 text-center text-sm text-zinc-700">No telemetry runs yet. Set <code class="text-zinc-500">BENCHMARKS_API_KEY</code> in a deployment to start capturing.</td>
         </tr>
         {% endfor %}
       </tbody>
