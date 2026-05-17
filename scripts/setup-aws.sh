@@ -39,6 +39,26 @@ aws dynamodb create-table \
   --billing-mode PAY_PER_REQUEST \
   --region $REGION 2>/dev/null || echo "    (already exists)"
 
+# api_keys DynamoDB table
+echo "==> Creating api_keys DynamoDB table..."
+aws dynamodb create-table \
+  --table-name api_keys \
+  --attribute-definitions \
+    AttributeName=key_hash,AttributeType=S \
+    AttributeName=user_id,AttributeType=S \
+    AttributeName=created_at,AttributeType=S \
+  --key-schema AttributeName=key_hash,KeyType=HASH \
+  --global-secondary-indexes '[{
+    "IndexName": "user-index",
+    "KeySchema": [
+      {"AttributeName": "user_id","KeyType": "HASH"},
+      {"AttributeName": "created_at","KeyType": "RANGE"}
+    ],
+    "Projection": {"ProjectionType": "ALL"}
+  }]' \
+  --billing-mode PAY_PER_REQUEST \
+  --region $REGION 2>/dev/null || echo "    (already exists)"
+
 # IAM task role
 echo "==> Creating ECS task IAM role..."
 aws iam create-role \
@@ -67,7 +87,9 @@ aws iam put-role-policy \
       ],
       \"Resource\": [
         \"arn:aws:dynamodb:${REGION}:${ACCOUNT_ID}:table/${TABLE_NAME}\",
-        \"arn:aws:dynamodb:${REGION}:${ACCOUNT_ID}:table/${TABLE_NAME}/index/*\"
+        \"arn:aws:dynamodb:${REGION}:${ACCOUNT_ID}:table/${TABLE_NAME}/index/*\",
+        \"arn:aws:dynamodb:${REGION}:${ACCOUNT_ID}:table/api_keys\",
+        \"arn:aws:dynamodb:${REGION}:${ACCOUNT_ID}:table/api_keys/index/*\"
       ]
     }]
   }"

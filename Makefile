@@ -7,10 +7,17 @@ SERVICE     := agent-benchmarks
 TASK_FAMILY := agent-benchmarks
 ROLE_ARN    := arn:aws:iam::$(ACCOUNT_ID):role/agent-benchmarks-task-role
 
-.PHONY: setup build push deploy
+.PHONY: setup build push deploy hash-password dev
 
 setup:
 	bash scripts/setup-aws.sh
+
+hash-password:
+	@uv run python3 scripts/hash_password.py
+
+dev:
+	@test -f .env || (echo "Copy .env.example to .env and fill in values first"; exit 1)
+	uv run uvicorn app.main:app --reload --port 8001
 
 push:
 	aws ecr get-login-password --region $(REGION) | docker login --username AWS --password-stdin $(ACCOUNT_ID).dkr.ecr.$(REGION).amazonaws.com
