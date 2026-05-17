@@ -137,6 +137,19 @@ def patch_run(run_id: str, fields: dict[str, Any], _: str = Depends(require_api_
     return table.get_item(Key={"run_id": run_id})["Item"]
 
 
+@router.post("/{run_id}/recording-upload-url")
+def get_recording_upload_url(run_id: str, _: str = Depends(require_api_key)):
+    """Return a presigned S3 PUT URL so the agent can upload a recording directly."""
+    recording_key = f"recordings/{run_id}/recording.mp4"
+    s3 = boto3.client("s3", region_name=os.environ.get("AWS_REGION", "us-east-1"))
+    upload_url = s3.generate_presigned_url(
+        "put_object",
+        Params={"Bucket": LOG_BUCKET, "Key": recording_key, "ContentType": "video/mp4"},
+        ExpiresIn=300,
+    )
+    return {"upload_url": upload_url, "recording_key": recording_key}
+
+
 @router.post("/{run_id}/screenshots")
 def upload_screenshots(run_id: str, body: dict[str, Any], _: str = Depends(require_api_key)):
     """Upload per-step screenshots for a failed run.

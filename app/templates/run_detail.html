@@ -2,7 +2,22 @@
 {% block title %}Run {{ run.run_id[:8] }} — Agent Benchmarks{% endblock %}
 {% block content %}
 {% set r = run.results %}
-<div class="p-8 max-w-5xl">
+<div class="p-8 {% if recording_url %}flex gap-6 items-start max-w-7xl{% else %}max-w-5xl{% endif %}">
+{% if recording_url %}
+<!-- Sticky video player — right column -->
+<div class="sticky top-8 flex-shrink-0 w-56">
+  <div class="border border-zinc-800 bg-zinc-900">
+    <div class="px-3 py-2 border-b border-zinc-800">
+      <h3 class="text-xs font-semibold uppercase tracking-wider text-zinc-500">Recording</h3>
+    </div>
+    <video controls class="w-full" preload="metadata">
+      <source src="{{ recording_url }}" type="video/mp4">
+    </video>
+  </div>
+</div>
+<!-- Main content -->
+<div class="flex-1 min-w-0">
+{% endif %}
 
   <!-- Breadcrumb + title -->
   <div class="flex items-center gap-2 mb-1">
@@ -179,34 +194,28 @@
       {% elif s.get('success') == false %}
         {% set step_failed = true %}
       {% endif %}
-      <div class="px-4 py-4 {% if step_failed %}bg-red-950 bg-opacity-30{% endif %}">
-        <!-- Step header -->
-        <div class="flex items-center justify-between mb-2">
-          <div class="flex items-center gap-2">
-            <span class="text-xs font-mono font-bold {% if step_failed %}text-red-500{% else %}text-zinc-600{% endif %}">{{ "%02d"|format(s.step) }}</span>
-            {% if step_failed %}
-              <span class="text-xs font-semibold text-red-500">✗ failed</span>
-            {% else %}
-              <span class="text-xs text-zinc-700">✓</span>
-            {% endif %}
-            {% if s.agent_type != 'bundled' %}
-            <span class="text-xs uppercase tracking-wider text-zinc-600">{{ s.agent_type }}</span>
-            {% endif %}
+      {% set shot_url = screenshot_urls.get((s.step - 1) | string) %}
+      <div class="flex gap-4 px-4 py-4 {% if step_failed %}bg-red-950 bg-opacity-30{% endif %}">
+        <!-- Step content -->
+        <div class="flex-1 min-w-0">
+          <!-- Step header -->
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-mono font-bold {% if step_failed %}text-red-500{% else %}text-zinc-600{% endif %}">{{ "%02d"|format(s.step) }}</span>
+              {% if step_failed %}
+                <span class="text-xs font-semibold text-red-500">✗ failed</span>
+              {% else %}
+                <span class="text-xs text-zinc-700">✓</span>
+              {% endif %}
+              {% if s.agent_type != 'bundled' %}
+              <span class="text-xs uppercase tracking-wider text-zinc-600">{{ s.agent_type }}</span>
+              {% endif %}
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="text-xs {{ 'text-amber-500 font-semibold' if dur > 10 else 'text-zinc-600' }}">{{ "%.1f"|format(dur) }}s</span>
+              <span class="text-xs text-zinc-700">{{ "{:,}".format(tok) }} tok</span>
+            </div>
           </div>
-          <div class="flex items-center gap-3 text-xs">
-            <span class="{{ 'text-amber-500 font-semibold' if dur > 10 else 'text-zinc-600' }}">{{ "%.1f"|format(dur) }}s</span>
-            <span class="text-zinc-700">{{ "{:,}".format(tok) }} tok</span>
-          </div>
-        </div>
-        <!-- Screenshot: what the agent saw before this step -->
-        {% set shot_url = screenshot_urls.get((s.step - 1) | string) %}
-        {% if shot_url %}
-        <div class="mb-2">
-          <a href="{{ shot_url }}" target="_blank" title="Screen state before this step">
-            <img src="{{ shot_url }}" class="max-h-32 border border-zinc-700 opacity-80 hover:opacity-100 transition-opacity" alt="Step {{ s.step }} screenshot">
-          </a>
-        </div>
-        {% endif %}
         <!-- Bundled (manager+executor) -->
         {% if s.agent_type == 'bundled' and s.agents %}
           {% for a in s.agents %}
@@ -232,6 +241,13 @@
           {% if s.thought %}<p class="text-xs text-zinc-400 leading-relaxed">{{ s.thought[:250] }}{% if s.thought | length > 250 %}…{% endif %}</p>{% endif %}
           {% if s.code %}<code class="text-xs text-zinc-500 font-mono block mt-1.5 bg-zinc-900 px-2 py-1">{{ s.code[:150] }}{% if s.code | length > 150 %}…{% endif %}</code>{% endif %}
           {% if s.result %}<p class="text-xs {% if step_failed %}text-red-600{% else %}text-zinc-600{% endif %} mt-1.5">→ {{ s.result[:200] }}{% if s.result | length > 200 %}…{% endif %}</p>{% endif %}
+        {% endif %}
+        </div>
+        <!-- Thumbnail to the right of all content -->
+        {% if shot_url %}
+        <div class="flex-shrink-0 self-start">
+          <img src="{{ shot_url }}" class="w-20 h-auto rounded-sm border border-zinc-700 cursor-zoom-in opacity-80 hover:opacity-100 transition-opacity" onclick="openScreenshot('{{ shot_url }}', {{ s.step }})" title="Screen before step {{ s.step }}" alt="">
+        </div>
         {% endif %}
       </div>
       {% endfor %}
@@ -362,4 +378,30 @@
   {% endif %}
 
 </div>
+{% if recording_url %}</div>{% endif %}
+
+<!-- Screenshot lightbox -->
+<div id="screenshot-lightbox" class="fixed inset-0 bg-black bg-opacity-90 hidden z-50 flex items-center justify-center" onclick="closeLightbox()">
+  <div class="relative flex flex-col items-center" onclick="event.stopPropagation()">
+    <div class="flex items-center justify-between w-full px-2 pb-2">
+      <span id="lightbox-label" class="text-xs font-semibold uppercase tracking-wider text-zinc-500"></span>
+      <button onclick="closeLightbox()" class="text-zinc-500 hover:text-zinc-200 text-sm px-2 py-1">✕ close</button>
+    </div>
+    <img id="lightbox-img" src="" class="max-h-[80vh] max-w-[90vw] border border-zinc-700 rounded-sm shadow-2xl" alt="Screenshot">
+  </div>
+</div>
+<script>
+  function openScreenshot(url, step) {
+    document.getElementById('lightbox-img').src = url;
+    document.getElementById('lightbox-label').textContent = 'Screen before step ' + step;
+    document.getElementById('screenshot-lightbox').classList.remove('hidden');
+  }
+  function closeLightbox() {
+    document.getElementById('screenshot-lightbox').classList.add('hidden');
+    document.getElementById('lightbox-img').src = '';
+  }
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeLightbox();
+  });
+</script>
 {% endblock %}

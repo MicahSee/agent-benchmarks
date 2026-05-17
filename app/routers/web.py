@@ -121,8 +121,13 @@ def run_detail(request: Request, run_id: str):
         url = _fresh_presigned_url(key, expires=3600)
         if url:
             screenshot_urls[str(idx)] = url
+    # Generate fresh presigned URL for screen recording
+    recording_url = None
+    if run.get("recording_key"):
+        recording_url = _fresh_presigned_url(run["recording_key"], expires=3600)
     return templates.TemplateResponse(request, "run_detail.html", {
-        "user": user, "run": run, "screenshot_urls": screenshot_urls, "active": "dashboard",
+        "user": user, "run": run, "screenshot_urls": screenshot_urls,
+        "recording_url": recording_url, "active": "dashboard",
     })
 
 
