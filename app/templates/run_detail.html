@@ -2,22 +2,7 @@
 {% block title %}Run {{ run.run_id[:8] }} — Agent Benchmarks{% endblock %}
 {% block content %}
 {% set r = run.results %}
-<div class="p-8 {% if recording_url %}flex gap-6 items-start max-w-7xl{% else %}max-w-5xl{% endif %}">
-{% if recording_url %}
-<!-- Sticky video player — right column -->
-<div class="sticky top-8 flex-shrink-0 w-56">
-  <div class="border border-zinc-800 bg-zinc-900">
-    <div class="px-3 py-2 border-b border-zinc-800">
-      <h3 class="text-xs font-semibold uppercase tracking-wider text-zinc-500">Recording</h3>
-    </div>
-    <video controls class="w-full" preload="metadata">
-      <source src="{{ recording_url }}" type="video/mp4">
-    </video>
-  </div>
-</div>
-<!-- Main content -->
-<div class="flex-1 min-w-0">
-{% endif %}
+<div class="p-8 max-w-4xl">
 
   <!-- Breadcrumb + title -->
   <div class="flex items-center gap-2 mb-1">
@@ -176,6 +161,19 @@
     </table>
   </div>
 
+  <!-- Recording -->
+  {% if recording_url %}
+  <div class="border border-zinc-800 mb-5">
+    <div class="px-3 py-2 border-b border-zinc-800 bg-zinc-900 flex items-center gap-2">
+      <span class="w-2 h-2 rounded-full bg-red-500 inline-block"></span>
+      <h3 class="text-xs font-semibold uppercase tracking-wider text-zinc-500">Recording</h3>
+    </div>
+    <video controls class="w-full max-h-72 object-contain bg-black" preload="metadata">
+      <source src="{{ recording_url }}" type="video/mp4">
+    </video>
+  </div>
+  {% endif %}
+
   <!-- Step timeline -->
   {% if r.get('step_details') %}
   <div class="border border-zinc-800 mb-5">
@@ -187,7 +185,6 @@
       {% for s in r.get('step_details') %}
       {% set dur = s.duration_seconds | float %}
       {% set tok = s.tokens | int %}
-      {# Determine if this step failed: bundled=any executor failed, single=success field #}
       {% set step_failed = false %}
       {% if s.agent_type == 'bundled' and s.agents %}
         {% for a in s.agents %}{% if a.agent_type != 'manager' and a.get('success') == false %}{% set step_failed = true %}{% endif %}{% endfor %}
@@ -196,9 +193,7 @@
       {% endif %}
       {% set shot_url = screenshot_urls.get((s.step - 1) | string) %}
       <div class="flex gap-4 px-4 py-4 {% if step_failed %}bg-red-950 bg-opacity-30{% endif %}">
-        <!-- Step content -->
         <div class="flex-1 min-w-0">
-          <!-- Step header -->
           <div class="flex items-center justify-between mb-2">
             <div class="flex items-center gap-2">
               <span class="text-xs font-mono font-bold {% if step_failed %}text-red-500{% else %}text-zinc-600{% endif %}">{{ "%02d"|format(s.step) }}</span>
@@ -216,34 +211,27 @@
               <span class="text-xs text-zinc-700">{{ "{:,}".format(tok) }} tok</span>
             </div>
           </div>
-        <!-- Bundled (manager+executor) -->
-        {% if s.agent_type == 'bundled' and s.agents %}
-          {% for a in s.agents %}
-          {% set agent_failed = a.agent_type != 'manager' and a.get('success') == false %}
-          <div class="mt-2 pl-3 border-l-2 {% if agent_failed %}border-red-800{% elif a.agent_type == 'manager' %}border-zinc-700{% else %}border-zinc-600{% endif %}">
-            <div class="flex items-center gap-2">
-              <span class="text-xs font-semibold uppercase tracking-wider {% if agent_failed %}text-red-500{% elif a.agent_type == 'manager' %}text-zinc-500{% else %}text-zinc-400{% endif %}">{{ a.agent_type }}</span>
-              {% if a.agent_type != 'manager' %}
-                {% if agent_failed %}
-                  <span class="text-xs text-red-600">✗</span>
-                {% else %}
-                  <span class="text-xs text-zinc-700">✓</span>
+          {% if s.agent_type == 'bundled' and s.agents %}
+            {% for a in s.agents %}
+            {% set agent_failed = a.agent_type != 'manager' and a.get('success') == false %}
+            <div class="mt-2 pl-3 border-l-2 {% if agent_failed %}border-red-800{% elif a.agent_type == 'manager' %}border-zinc-700{% else %}border-zinc-600{% endif %}">
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-semibold uppercase tracking-wider {% if agent_failed %}text-red-500{% elif a.agent_type == 'manager' %}text-zinc-500{% else %}text-zinc-400{% endif %}">{{ a.agent_type }}</span>
+                {% if a.agent_type != 'manager' %}
+                  {% if agent_failed %}<span class="text-xs text-red-600">✗</span>{% else %}<span class="text-xs text-zinc-700">✓</span>{% endif %}
                 {% endif %}
-              {% endif %}
+              </div>
+              {% if a.thought %}<p class="text-xs text-zinc-400 mt-1 leading-relaxed">{{ a.thought[:250] }}{% if a.thought | length > 250 %}…{% endif %}</p>{% endif %}
+              {% if a.code %}<code class="text-xs text-zinc-500 font-mono block mt-1 bg-zinc-900 px-2 py-1">{{ a.code[:150] }}{% if a.code | length > 150 %}…{% endif %}</code>{% endif %}
+              {% if a.result %}<p class="text-xs {% if agent_failed %}text-red-600{% else %}text-zinc-600{% endif %} mt-1">→ {{ a.result[:150] }}{% if a.result | length > 150 %}…{% endif %}</p>{% endif %}
             </div>
-            {% if a.thought %}<p class="text-xs text-zinc-400 mt-1 leading-relaxed">{{ a.thought[:250] }}{% if a.thought | length > 250 %}…{% endif %}</p>{% endif %}
-            {% if a.code %}<code class="text-xs text-zinc-500 font-mono block mt-1 bg-zinc-900 px-2 py-1">{{ a.code[:150] }}{% if a.code | length > 150 %}…{% endif %}</code>{% endif %}
-            {% if a.result %}<p class="text-xs {% if agent_failed %}text-red-600{% else %}text-zinc-600{% endif %} mt-1">→ {{ a.result[:150] }}{% if a.result | length > 150 %}…{% endif %}</p>{% endif %}
-          </div>
-          {% endfor %}
-        <!-- Single agent (codeact) -->
-        {% else %}
-          {% if s.thought %}<p class="text-xs text-zinc-400 leading-relaxed">{{ s.thought[:250] }}{% if s.thought | length > 250 %}…{% endif %}</p>{% endif %}
-          {% if s.code %}<code class="text-xs text-zinc-500 font-mono block mt-1.5 bg-zinc-900 px-2 py-1">{{ s.code[:150] }}{% if s.code | length > 150 %}…{% endif %}</code>{% endif %}
-          {% if s.result %}<p class="text-xs {% if step_failed %}text-red-600{% else %}text-zinc-600{% endif %} mt-1.5">→ {{ s.result[:200] }}{% if s.result | length > 200 %}…{% endif %}</p>{% endif %}
-        {% endif %}
+            {% endfor %}
+          {% else %}
+            {% if s.thought %}<p class="text-xs text-zinc-400 leading-relaxed">{{ s.thought[:250] }}{% if s.thought | length > 250 %}…{% endif %}</p>{% endif %}
+            {% if s.code %}<code class="text-xs text-zinc-500 font-mono block mt-1.5 bg-zinc-900 px-2 py-1">{{ s.code[:150] }}{% if s.code | length > 150 %}…{% endif %}</code>{% endif %}
+            {% if s.result %}<p class="text-xs {% if step_failed %}text-red-600{% else %}text-zinc-600{% endif %} mt-1.5">→ {{ s.result[:200] }}{% if s.result | length > 200 %}…{% endif %}</p>{% endif %}
+          {% endif %}
         </div>
-        <!-- Thumbnail to the right of all content -->
         {% if shot_url %}
         <div class="flex-shrink-0 self-start">
           <img src="{{ shot_url }}" class="w-20 h-auto rounded-sm border border-zinc-700 cursor-zoom-in opacity-80 hover:opacity-100 transition-opacity" onclick="openScreenshot('{{ shot_url }}', {{ s.step }})" title="Screen before step {{ s.step }}" alt="">
@@ -378,7 +366,6 @@
   {% endif %}
 
 </div>
-{% if recording_url %}</div>{% endif %}
 
 <!-- Screenshot lightbox -->
 <div id="screenshot-lightbox" class="fixed inset-0 bg-black bg-opacity-90 hidden z-50 flex items-center justify-center" onclick="closeLightbox()">
